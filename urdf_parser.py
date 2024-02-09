@@ -17,10 +17,13 @@ print('model name: ' + model.name)
 # Create data required by the algorithms
 data     = model.createData()
  
-# Sample a random configuration
+#Sample a random configuration
 q        = pinocchio.neutral(model)
 print('q: %s' % q.T)
- 
+
+# q=np.array([0,0,0,0.15,0,0,0,-0.0,0,0])
+# print(q)
+
 # Perform the forward kinematics over the kinematic tree
 pinocchio.forwardKinematics(model,data,q)
  

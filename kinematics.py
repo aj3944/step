@@ -86,15 +86,16 @@ while True:
             )
 
     visualizer.display(q)
-    print(norm_err)
+    #print(norm_err)
+    i+=1
     #time.sleep(0.05)
 
-if success:
-    print("Convergence achieved!")
-else:
-    print(
-        "\nWarning: the iterative algorithm has not reached convergence to the desired precision"
-    )
+# if success:
+#     print("Convergence achieved!")
+# else:
+#     print(
+#         "\nWarning: the iterative algorithm has not reached convergence to the desired precision"
+#     )
 
-print("\nresult: %s" % q.flatten().tolist())
-print("\nfinal error: %s" % err.T)
+# print("\nresult: %s" % q.flatten().tolist())
+# print("\nfinal error: %s" % err.T)
