@@ -14,7 +14,6 @@ urdf_filename = "/home/adi/hum_rob_ws/src/six_dof/urdf/6dof_fixed.urdf"
 model    = pinocchio.buildModelFromUrdf(urdf_filename)
 print('model name: ' + model.name)
  
-# Create data required by the algorithms
 data     = model.createData()
  
 #Sample a random configuration
