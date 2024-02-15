@@ -41,7 +41,7 @@ visualizer.loadViewerModel()
 q = pin.neutral(model)
 print(q)
 eps = 1e-4
-DT = 1e-3
+DT = 1e-
 damp = 1e-2
 IT_MAX=2000
 JOINT_ID = 6
