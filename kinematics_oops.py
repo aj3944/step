@@ -61,13 +61,18 @@ class Inverse_kinematics_Solver:
         elif foot == "left":
             self.JOINT_ID = 4
         i = 0
-        T_des = np.array([0.0235, -0.030, -0.265])
         oMdes = pin.SE3(
             R_des, T_des
         )  # think of oMdes as oTdes, the transfromation from desired to origin expressed in origin
 
-        q = pin.neutral(self.model)
+        # CHECK THIS LOGIC
+        if len(self.joint_configs) == 0:
+            q = pin.neutral(self.model)
 
+        else:
+            q = self.joint_configs[-1][-1]
+            print(q)
+            
         trajectory = np.zeros((self.IT_MAX, 8), float)
         actual_iterations = 0
 
@@ -137,16 +142,29 @@ class Inverse_kinematics_Solver:
                 for i in range(len(self.joint_configs)):
                     for j in range(len(self.joint_configs[i])):
                         self.visualizer.display(self.joint_configs[i][j])
-                        #print(type(self.joint_configs[i][j]))
+                        # print(type(self.joint_configs[i][j]))
         except KeyboardInterrupt:
             pass
 
-    def march(self, foot, foot_x_movement=0, foot_y_movement=0, foot_z_movement=0):
+    def march(
+        self,
+        foot,
+        foot_x_movement: float = 0,
+        foot_y_movement: float = 0,
+        foot_z_movement: float = 0,
+    ):
         if foot == "right":
             R_des_right_foot_neutral = np.array(
                 [[1, 0, 0], [0, 0.000796327, -1], [0, 1, 0.000796327]]
             )
             T_des_right_foot_neutral = np.array(
+                [
+                    0.0235,
+                    -0.000230935,
+                    -0.29,
+                ]
+            )
+            T_des_right_foot = np.array(
                 [
                     0.0235 + foot_x_movement,
                     -0.000230935 + foot_y_movement,
@@ -156,10 +174,10 @@ class Inverse_kinematics_Solver:
             self.create_model_and_data()
             self.create_geometric_model("visual")
             self.create_geometric_model("collision")
-            self.solve(R_des_right_foot_neutral, T_des_right_foot_neutral, foot)
+            self.solve(R_des_right_foot_neutral, T_des_right_foot, foot)
 
         elif foot == "left":
-            R_des_left_neutral = np.array(
+            R_des_left_foot_neutral = np.array(
                 [
                     [0.999995, 0, -0.0031853],
                     [-0.0031853, 0.000796327, -0.999995],
@@ -178,12 +196,8 @@ class Inverse_kinematics_Solver:
             self.create_geometric_model("visual")
             self.create_geometric_model("collision")
             self.solve(
-                R_des_right_foot_neutral, T_des_right_foot_neutral, foot
+                R_des_left_foot_neutral, T_des_left_foot_neutral, foot
             )  # creates trajectory as numpy array and appends to list- not optimal
-
-        self.create_visualizer()
-
-        self.visualize()
 
 
 if __name__ == "__main__":
@@ -193,4 +207,13 @@ if __name__ == "__main__":
     mesh_dir = "/home/adi/hum_rob_ws/src/six_dof/meshes"
     ik_solver = Inverse_kinematics_Solver(urdf_filename, mesh_dir)
     # in y axis minus is forward , in z minus is upwards
-    ik_solver.march("right", 0.0, -0.030, -0.10)
+    ik_solver.march("left", 0.0, -0.040, 0.030)
+    ik_solver.march("left", 0.0, 0.0, 0.0)
+    
+
+    ik_solver.march("right", 0.0, -0.040, 0.030)
+    ik_solver.march("right", 0.0, 0.0, 0.0)
+    # visualize
+    ik_solver.create_visualizer()
+    ik_solver.visualize()
+    print(len(ik_solver.joint_configs))
