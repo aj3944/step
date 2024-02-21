@@ -53,7 +53,7 @@ class Inverse_kinematics_Solver:
         )
         self.visualizer.initViewer()
         self.visualizer.loadViewerModel()
-        webbrowser.open("http://127.0.0.1:7002/static/")
+        webbrowser.open("http://127.0.0.1:7001/static/")
 
     def solve(self, R_des, T_des, foot):
         if foot == "right":
@@ -131,7 +131,7 @@ class Inverse_kinematics_Solver:
             last_value = trajectory[-1]  # Get the last value of the trajectory
             #last_value=np.array([np.rad2deg(i) for i in last_value])
             with open('last_trajectory_value.txt', 'a') as file:
-                file.write(str(last_value)) 
+                file.write(str(last_value)+"\n") 
             self.joint_configs.append(trajectory)
             return True
         else:
