@@ -24,7 +24,7 @@ class Inverse_kinematics_Solver:
 
     # creating the key math model and associated data
     def create_model_and_data(self):
-        self.model = pin.buildModelfromURDF(self.urdf_file)
+        self.model = pin.buildModelFromUrdf(self.urdf_file)
         self.data = self.model.createData()
 
     # create visual and/or collision model
@@ -32,11 +32,17 @@ class Inverse_kinematics_Solver:
         if self.model != None:
             if geometry_type == "visual":
                 self.visual_model = pin.buildGeomFromUrdf(
-                    self.model, self.data, pin.VISUAL, package_dirs=self.mesh_dir
+                    self.model,
+                    self.urdf_file,
+                    pin.GeometryType.VISUAL,
+                    package_dirs=self.mesh_dir,
                 )
             elif geometry_type == "collision":
                 self.collision_model = pin.buildGeomFromUrdf(
-                    self.model, self.data, pin.COLLISION, package_dirs=self.mesh_dir
+                    self.model,
+                    self.urdf_file,
+                    pin.GeometryType.COLLISION,
+                    package_dirs=self.mesh_dir,
                 )
                 self.collision_data = pin.GeometryData(self.collision_model)
 
@@ -47,7 +53,7 @@ class Inverse_kinematics_Solver:
         )
         self.visualizer.initViewer()
         self.visualizer.loadViewerModel()
-        webbrowser.open("http://127.0.0.1:7014/static/")
+        webbrowser.open("http://127.0.0.1:7002/static/")
 
     def solve(self, R_des, T_des, foot):
         if foot == "right":
@@ -90,7 +96,7 @@ class Inverse_kinematics_Solver:
 
             # Collision check
             pin.updateGeometryPlacements(
-                self.model, self.data, self.collision_model, self.geom_data, q
+                self.model, self.data, self.collision_model, self.collision_data, q
             )  # updates geom_data by reference
 
             # an active pair is a pair of bodies in a joint considered for collision
@@ -126,29 +132,65 @@ class Inverse_kinematics_Solver:
             return False
 
     def visualize(self):
-        for i in range(self.joint_configs.shape[0]):
-            self.visualizer.display(self.joint_configs[i])
+        try:
+            while True:
+                for i in range(len(self.joint_configs)):
+                    for j in range(len(self.joint_configs[i])):
+                        self.visualizer.display(self.joint_configs[i][j])
+                        #print(type(self.joint_configs[i][j]))
+        except KeyboardInterrupt:
+            pass
 
-    def run(self, foot_y_movement=0, foot_z_movement=0):
-        R_des_right_foot_neutral = np.array(
-            [[1, 0, 0], [0, 0.000796327, -1], [0, 1, 0.000796327]]
-        )
-        R_des_left_neutral = np.array(
-            [
-                [0.999995, 0, -0.0031853],
-                [-0.0031853, 0.000796327, -0.999995],
-                [2.53654e-06, 1, 0.000796323],
-            ]
-        )
+    def march(self, foot, foot_x_movement=0, foot_y_movement=0, foot_z_movement=0):
+        if foot == "right":
+            R_des_right_foot_neutral = np.array(
+                [[1, 0, 0], [0, 0.000796327, -1], [0, 1, 0.000796327]]
+            )
+            T_des_right_foot_neutral = np.array(
+                [
+                    0.0235 + foot_x_movement,
+                    -0.000230935 + foot_y_movement,
+                    -0.29 + foot_z_movement,
+                ]
+            )
+            self.create_model_and_data()
+            self.create_geometric_model("visual")
+            self.create_geometric_model("collision")
+            self.solve(R_des_right_foot_neutral, T_des_right_foot_neutral, foot)
 
-        T_des_right_foot_neutral = np.array(
-            [0.0235, -0.000230935 + foot_y_movement, -0.29 + foot_z_movement]
-        )
+        elif foot == "left":
+            R_des_left_neutral = np.array(
+                [
+                    [0.999995, 0, -0.0031853],
+                    [-0.0031853, 0.000796327, -0.999995],
+                    [2.53654e-06, 1, 0.000796323],
+                ]
+            )
 
-        T_des_left_foot_neutral = np.array([0.1225, -0.000234916, -0.29])
-
-        self.solve(R_des_right_foot_neutral, T_des_right_foot_neutral, "right")
+            T_des_left_foot_neutral = np.array(
+                [
+                    0.1225 + foot_x_movement,
+                    -0.000234916 + foot_y_movement,
+                    -0.29 + foot_z_movement,
+                ]
+            )
+            self.create_model_and_data()
+            self.create_geometric_model("visual")
+            self.create_geometric_model("collision")
+            self.solve(
+                R_des_right_foot_neutral, T_des_right_foot_neutral, foot
+            )  # creates trajectory as numpy array and appends to list- not optimal
 
         self.create_visualizer()
 
         self.visualize()
+
+
+if __name__ == "__main__":
+    os.environ["ROS_PACKAGE_PATH"] = "/home/adi/hum_rob_ws/src"
+
+    urdf_filename = "/home/adi/hum_rob_ws/src/six_dof/urdf/6dof_from_hip.urdf"
+    mesh_dir = "/home/adi/hum_rob_ws/src/six_dof/meshes"
+    ik_solver = Inverse_kinematics_Solver(urdf_filename, mesh_dir)
+    # in y axis minus is forward , in z minus is upwards
+    ik_solver.march("right", 0.0, -0.030, -0.10)
