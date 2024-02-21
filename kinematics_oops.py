@@ -128,6 +128,10 @@ class Inverse_kinematics_Solver:
         if success:
             print("Convergence achieved!")
             trajectory = trajectory[:actual_iterations]
+            last_value = trajectory[-1]  # Get the last value of the trajectory
+            #last_value=np.array([np.rad2deg(i) for i in last_value])
+            with open('last_trajectory_value.txt', 'a') as file:
+                file.write(str(last_value)) 
             self.joint_configs.append(trajectory)
             return True
         else:
@@ -207,11 +211,11 @@ if __name__ == "__main__":
     mesh_dir = "/home/adi/hum_rob_ws/src/six_dof/meshes"
     ik_solver = Inverse_kinematics_Solver(urdf_filename, mesh_dir)
     # in y axis minus is forward , in z minus is upwards
-    ik_solver.march("left", 0.0, -0.040, 0.030)
+    ik_solver.march("left", 0.0, -0.010, 0.010)
     ik_solver.march("left", 0.0, 0.0, 0.0)
     
 
-    ik_solver.march("right", 0.0, -0.040, 0.030)
+    ik_solver.march("right", 0.0, -0.010, 0.010)
     ik_solver.march("right", 0.0, 0.0, 0.0)
     # visualize
     ik_solver.create_visualizer()
