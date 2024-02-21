@@ -130,8 +130,9 @@ class Inverse_kinematics_Solver:
             trajectory = trajectory[:actual_iterations]
             last_value = trajectory[-1]  # Get the last value of the trajectory
             #last_value=np.array([np.rad2deg(i) for i in last_value])
-            with open('last_trajectory_value.txt', 'a') as file:
-                file.write(str(last_value)+"\n") 
+            with open('trajectory_values.csv', 'a') as file:  # Open file in append mode
+                # Convert the NumPy array to a string with commas separating values and append a newline
+                np.savetxt(file, [last_value], delimiter=',', fmt='%s')
             self.joint_configs.append(trajectory)
             return True
         else:
