@@ -206,13 +206,13 @@ class Inverse_kinematics_Solver:
 
 
 if __name__ == "__main__":
-    os.environ["ROS_PACKAGE_PATH"] = "/home/adi/hum_rob_ws/src"
+    os.environ["ROS_PACKAGE_PATH"] = "/home/va/stepws/src/six_dof"
 
-    urdf_filename = "/home/adi/hum_rob_ws/src/six_dof/urdf/6dof_from_hip.urdf"
-    mesh_dir = "/home/adi/hum_rob_ws/src/six_dof/meshes"
+    urdf_filename = "/home/va/stepws/src/six_dof/urdf/6dof_from_hip.urdf"
+    mesh_dir = "/home/va/stepws/src/six_dof/meshes"
     ik_solver = Inverse_kinematics_Solver(urdf_filename, mesh_dir)
     # in y axis minus is forward , in z minus is upwards
-    ik_solver.march("left", 0.0, -0.010, 0.010)
+    ik_solver.march("left", 0.0, -0.010, -0.010)
     ik_solver.march("left", 0.0, 0.0, 0.0)
     
 
