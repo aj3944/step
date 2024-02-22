@@ -56,13 +56,18 @@ class Bot:
             self.right_hip.read()
         except:
             print("ecnoder fail")
+    def injest_ik(self,traj_4):
+        print("injecting traj",traj_4)
+        self.left_knee = traj_4[1]
+        self.left_thigh = traj_4[0]
+        self.right_knee = traj_4[3]
+        self.right_thigh = traj_4[2]
+# 
+# mark_4 = Bot()
+# mark_4.home()
+# mark_4.read()
 
-
-mark_4 = Bot()
-mark_4.home()
-mark_4.read()
-
-mark_4.raise_foot(1,0)
+# mark_4.raise_foot(1,0)
 
 # refresh = .5;
 
