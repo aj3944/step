@@ -4,6 +4,43 @@ from pinocchio.visualize import MeshcatVisualizer
 import numpy as np
 from numpy.linalg import solve, norm
 import webbrowser
+from pylx16a.lx16a import *
+
+#REMOVE BEFORE PUSHING
+import sys
+
+class Motor:
+    def __init__():
+        LX16A.initialize("/dev/ttyUSB0", 0.1)
+
+        servo1 = LX16A(1) #Left Knee Servo
+        servo2 = LX16A(2) #Left Thigh Servo
+        servo3 = LX16A(3) #Left Hip Servo
+        servo4 = LX16A(4) #RIght hip Servo
+        servo5 = LX16A(5) #Right thigh Servo
+        servo6 = LX16A(6) #Right knee Servo
+
+        try:
+            servo1.set_id(1)
+            servo2.set_id(2)
+            servo3.set_id(3)
+            servo4.set_id(4)
+            servo5.set_id(5)
+            servo6.set_id(6)
+
+            servo1.set_angle_limits(0,240)
+            servo2.set_angle_limits(0,240)
+            servo3.set_angle_limits(0,240)
+            servo4.set_angle_limits(0,240)
+            servo5.set_angle_limits(0,240)
+            servo6.set_angle_limits(0,240)
+
+        except ServoTimeoutError as e:
+            print(f"Servo {e.id_} is not responding. Exiting...")
+            
+
+     
+
 
 
 class Inverse_kinematics_Solver:
@@ -128,11 +165,6 @@ class Inverse_kinematics_Solver:
         if success:
             print("Convergence achieved!")
             trajectory = trajectory[:actual_iterations]
-            last_value = trajectory[-1]  # Get the last value of the trajectory
-            #last_value=np.array([np.rad2deg(i) for i in last_value])
-            with open('trajectory_values.csv', 'a') as file:  # Open file in append mode
-                # Convert the NumPy array to a string with commas separating values and append a newline
-                np.savetxt(file, [last_value], delimiter=',', fmt='%s')
             self.joint_configs.append(trajectory)
             return True
         else:
@@ -208,6 +240,15 @@ class Inverse_kinematics_Solver:
 if __name__ == "__main__":
     os.environ["ROS_PACKAGE_PATH"] = "/home/adi/hum_rob_ws/src"
 
+    py310_issue=input("ARE YOU HAVING TROUBLE WITH py310 AND MESHCAT?? [y/n] \n")
+    if py310_issue=='y':
+        sys.path = ['/home/adi/anaconda3/envs/robotics_course_py310/lib/python3.10/site-packages'] + sys.path
+        print("adjusted sys.path\n")
+    else:
+        print("great! moving on!\n")
+
+
+
     urdf_filename = "/home/adi/hum_rob_ws/src/six_dof/urdf/6dof_from_hip.urdf"
     mesh_dir = "/home/adi/hum_rob_ws/src/six_dof/meshes"
     ik_solver = Inverse_kinematics_Solver(urdf_filename, mesh_dir)
@@ -221,4 +262,4 @@ if __name__ == "__main__":
     # visualize
     ik_solver.create_visualizer()
     ik_solver.visualize()
-    print(len(ik_solver.joint_configs))
+    print("\n"+str(len(ik_solver.joint_configs)))
