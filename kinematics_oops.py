@@ -5,6 +5,8 @@ import numpy as np
 from numpy.linalg import solve, norm
 import webbrowser
 from test import Bot
+import time 
+
 
 class Inverse_kinematics_Solver:
 
@@ -99,22 +101,22 @@ class Inverse_kinematics_Solver:
             q_dot = -J.T.dot(solve(J.dot(J.T) + self.damp * np.eye(6), err))
             q = pin.integrate(self.model, q, q_dot * self.DT)
 
-            # Collision check
-            pin.updateGeometryPlacements(
-                self.model, self.data, self.collision_model, self.collision_data, q
-            )  # updates geom_data by reference
+            # # Collision check
+            # pin.updateGeometryPlacements(
+            #     self.model, self.data, self.collision_model, self.collision_data, q
+            # )  # updates geom_data by reference
 
-            # an active pair is a pair of bodies in a joint considered for collision
-            collision_detected = pin.computeCollisions(
-                self.model,
-                self.data,
-                self.collision_model,
-                self.collision_data,
-                q,
-                True,
-            )  # this returns data,geom_data. polymorphic function
+            # # an active pair is a pair of bodies in a joint considered for collision
+            # collision_detected = pin.computeCollisions(
+            #     self.model,
+            #     self.data,
+            #     self.collision_model,
+            #     self.collision_data,
+            #     q,
+            #     True,
+            # )  # this returns data,geom_data. polymorphic function
 
-            if not collision_detected:
+            if True or not collision_detected :
                 for idx in range(self.model.nq):
                     # Assuming model.lowerPositionLimit and model.upperPositionLimit store the limits
                     q[idx] = max(
@@ -206,7 +208,7 @@ class Inverse_kinematics_Solver:
 
 
 def motor_map(traj_8):
-    return [np.rad2deg(traj_8[1])*-1,np.rad2deg(traj_8[2]),np.rad2deg(traj_8[5])*-1,np.rad2deg(traj_8[6])]
+    return [np.rad2deg(traj_8[1])*-1,np.rad2deg(traj_8[2]),np.rad2deg(traj_8[5])*-1,np.rad2deg(traj_8[6]*-1)]
 
 
 if __name__ == "__main__":
@@ -219,22 +221,25 @@ if __name__ == "__main__":
     mesh_dir = "/home/va/stepws/src/six_dof/meshes"
     ik_solver = Inverse_kinematics_Solver(urdf_filename, mesh_dir)
     # in y axis minus is forward , in z minus is upwards
-    ik_solver.march("left", 0.0, 0.010, 0.010)
+    ik_solver.march("left", 0.0, -0.010, 0.010)
     ik_solver.march("left", 0.0, 0.0, 0.0)
     
 
-    ik_solver.march("right", 0.0, 0.010, 0.010)
+    ik_solver.march("right", 0.0, -0.010, 0.010)
     ik_solver.march("right", 0.0, 0.0, 0.0)
     # visualize
     # ik_solver.create_visualizer()
     # ik_solver.visualize()
 
-    motor_traj_list =  [[motor_map(x) for x in y] for y in ik_solver.joint_configs]
-
+    motor_traj_list =  [ [motor_map(y[-1])] for y in ik_solver.joint_configs]
+    # motor_traj_list =  [[motor_map(x) for x in y] for y in ik_solver.joint_configs]
+    # motor_traj_list =  [motor_map(x[-1]) for x  in ]
+    print(motor_traj_list)
 
     for traj_list in motor_traj_list:
         for pose_4 in traj_list:
             mark_4.injest_ik(pose_4)
+            time.sleep(1)
 
     # print(motor_traj_list[0][9000])
     # print(len(ik_solver.joint_configs[1]))
