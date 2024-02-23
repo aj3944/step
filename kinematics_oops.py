@@ -4,7 +4,7 @@ from pinocchio.visualize import MeshcatVisualizer
 import numpy as np
 from numpy.linalg import solve, norm
 import webbrowser
-from pylx16a.lx16a import *
+# from pylx16a.lx16a import *
 
 # REMOVE BEFORE PUSHING
 import sys
@@ -150,8 +150,9 @@ class Inverse_kinematics_Solver:
             print(i)
             print("Convergence achieved!")
             trajectory = trajectory[:actual_iterations]
-
-            self.joint_trajectories.append(trajectory)
+            print("actual iter ", actual_iterations)
+            print(trajectory)
+            if actual_iterations: self.joint_trajectories.append(trajectory)
             return True
         else:
             print(
@@ -224,7 +225,7 @@ class Inverse_kinematics_Solver:
 
 
 if __name__ == "__main__":
-    os.environ["ROS_PACKAGE_PATH"] = "/home/adi/hum_rob_ws/src"
+    os.environ["ROS_PACKAGE_PATH"] = "/Users/Apple/Documents/Master/NYU_Robotics/Gait-Manipulation/hum_rob_ws/src"
 
     py310_issue = input("ARE YOU HAVING TROUBLE WITH py310 AND MESHCAT?? [y/n] \n")
     if py310_issue == "y":
@@ -235,8 +236,8 @@ if __name__ == "__main__":
     else:
         print("great! moving on!\n")
 
-    urdf_filename = "/home/adi/hum_rob_ws/src/six_dof/urdf/6dof_from_hip.urdf"
-    mesh_dir = "/home/adi/hum_rob_ws/src/six_dof/meshes"
+    urdf_filename = "/Users/Apple/Documents/Master/NYU_Robotics/Gait-Manipulation/hum_rob_ws/src/six_dof/urdf/6dof_from_hip.urdf"
+    mesh_dir = "/Users/Apple/Documents/Master/NYU_Robotics/Gait-Manipulation/hum_rob_ws/src/six_dof/meshes"
     ik_solver = Inverse_kinematics_Solver(urdf_filename, mesh_dir)
     # in y axis minus is forward , in z minus is upwards
 
