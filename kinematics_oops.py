@@ -167,7 +167,7 @@ class Inverse_kinematics_Solver:
                         self.visualizer.display(self.joint_trajectories[i][j])
                         # print(type(self.joint_trajectories[i][j]))
         except KeyboardInterrupt:
-            pass
+            print("keyboard interrupt")
 
     def march(
         self,
@@ -197,7 +197,7 @@ class Inverse_kinematics_Solver:
             self.create_model_and_data()
             self.create_geometric_model("visual")
             self.create_geometric_model("collision")
-            self.solve(R_des_right_foot_neutral, T_des_right_foot, foot)
+            return self.solve(R_des_right_foot_neutral, T_des_right_foot, foot)
 
         elif foot == "left":
             R_des_left_foot_neutral = np.array(
@@ -218,7 +218,7 @@ class Inverse_kinematics_Solver:
             self.create_model_and_data()
             self.create_geometric_model("visual")
             self.create_geometric_model("collision")
-            self.solve(
+            return self.solve(
                 R_des_left_foot_neutral, T_des_left_foot_neutral, foot
             )  # creates trajectory as numpy array and appends to list- not optimal
 
@@ -239,12 +239,35 @@ if __name__ == "__main__":
     mesh_dir = "/home/adi/hum_rob_ws/src/six_dof/meshes"
     ik_solver = Inverse_kinematics_Solver(urdf_filename, mesh_dir)
     # in y axis minus is forward , in z minus is upwards
-    ik_solver.march("left", 0.0, -0.020, 0.010)
-    ik_solver.march("left", 0.0, 0.0, 0.0)
 
-    ik_solver.march("right", 0.0, -0.020, 0.010)
-    ik_solver.march("right", 0.0, 0.0, 0.0)
+    target_coords=[]
+    calls= input("how many points do you want to reach?\n")
+    calls=int(calls)
+    for i in range(calls):
+        user_input = input("Enter foot and x,y,z  values separated by commas, remeber - is forward in y, + is up in z:\n")
+        xyz_coords = [item for item in user_input.split(",")]
+        target_coords.append(xyz_coords) #list element appended to list
+    
+    ik_success=[]
+    for i in range(calls):
+        # ik_solver.march("left", 0.0, -0.020, 0.010)
+        # ik_solver.march("left", 0.0, 0.0, 0.0)
+
+        # ik_solver.march("right", 0.0, -0.020, 0.010)
+        # ik_solver.march("right", 0.0, 0.0, 0.0)
+
+        success=ik_solver.march(target_coords[i][0],float(target_coords[i][1]),float(target_coords[i][2]),float(target_coords[i][3]))
+        if  not success:
+            ik_success.append(success)
+            break
+        else:
+            ik_success.append(success)
+            
     # visualize
-    ik_solver.create_visualizer()
-    ik_solver.visualize()
-    print("\n" + str(len(ik_solver.joint_trajectories)))
+
+    if all(ik_success): # if all elements are True 
+        ik_solver.create_visualizer()
+        ik_solver.visualize()
+        print("\n" + str(len(ik_solver.joint_trajectories)))
+    else:
+        print("couldnt reach a point , please check.")
