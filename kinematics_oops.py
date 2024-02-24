@@ -214,18 +214,17 @@ def motor_map(traj_8):
 if __name__ == "__main__":
     os.environ["ROS_PACKAGE_PATH"] = "/home/va/stepws/src/six_dof"
 
-
     mark_4 = Bot()
     mark_4.home()
     urdf_filename = "/home/va/stepws/src/six_dof/urdf/6dof_from_hip.urdf"
     mesh_dir = "/home/va/stepws/src/six_dof/meshes"
     ik_solver = Inverse_kinematics_Solver(urdf_filename, mesh_dir)
     # in y axis minus is forward , in z minus is upwards
-    ik_solver.march("left", 0.0, -0.010, 0.010)
+    ik_solver.march("left", 0.0, 0.030, 0.02)
     ik_solver.march("left", 0.0, 0.0, 0.0)
     
 
-    ik_solver.march("right", 0.0, -0.010, 0.010)
+    ik_solver.march("right", 0.0, 0.030, 0.02)
     ik_solver.march("right", 0.0, 0.0, 0.0)
     # visualize
     # ik_solver.create_visualizer()
@@ -238,8 +237,8 @@ if __name__ == "__main__":
 
     for traj_list in motor_traj_list:
         for pose_4 in traj_list:
-            mark_4.injest_ik(pose_4)
-            time.sleep(1)
+            mark_4.injest_ik(pose_4,0.150)
+            # time.sleep(1)
 
     # print(motor_traj_list[0][9000])
     # print(len(ik_solver.joint_configs[1]))
