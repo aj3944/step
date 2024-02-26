@@ -272,8 +272,3 @@ if __name__ == "__main__":
 # mark_4.right_thigh.move(10);
 # mark_4.right_hip.move(30);
 
-
-
-
-
-
