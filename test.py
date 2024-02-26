@@ -3,6 +3,9 @@ from pylx16a.lx16a import *
 import time
 
 
+
+
+
 class Motor:
     center = 0
     moved_last_offset = 0;
@@ -10,12 +13,15 @@ class Motor:
     def __init__(self,ID,cent,min_ang = 0,max_ang = 240):
         # self.I
         self.center = cent
-        self.servo =  LX16A(ID)
         try:
-            self.servo.set_id(ID)
-            self.servo.set_angle_limits(min_ang,max_ang)
-        except ServoTimeoutError as e:
-            print(f"Servo {e.id_} is not responding. Exiting...")
+            self.servo =  LX16A(ID)
+        # try:
+        #     pass
+        #     # self.servo.set_id(ID)
+        #     # self.servo.set_angle_limits(min_ang,max_ang)
+        except Exception as e:
+            print(e)
+            # print(f"Servo {e.id_} is not responding. Exiting...")
     def move(self,offset =0 ):
         goal_pos = self.center + offset;
         self.moved_last_offset = offset 
@@ -39,14 +45,14 @@ class Motor:
 class Bot:
 
     def __init__(self):
-        LX16A.initialize("/dev/ttyUSB0", 0.1)
 
-        self.left_knee = Motor(1,136);
-        self.left_thigh = Motor(2,105);
+        LX16A.initialize("/dev/ttyUSB0")
+        self.left_knee = Motor(1,120);
+        self.left_thigh = Motor(2,120);
         self.left_hip = Motor(3,135);
-        self.right_hip = Motor(4,127);
-        self.right_thigh = Motor(5,95);
-        self.right_knee = Motor(6,107);
+        self.right_hip = Motor(4,120);
+        self.right_thigh = Motor(5,83);
+        self.right_knee = Motor(6,70);
         
     def home(self):
         self.left_knee.move()
@@ -64,39 +70,57 @@ class Bot:
             # self.right_thigh.move(height);
     def read(self):
         try:
+            self.right_knee.read()
+            time.sleep(0.01)
             self.left_knee.read()
+            time.sleep(0.01)
             self.left_thigh.read()
+            time.sleep(0.01)
             self.left_hip.read()
-            # self.right_knee.read()
+            time.sleep(0.01)
             self.right_thigh.read()
+            time.sleep(0.01)
             self.right_hip.read()
-        except:
+            time.sleep(0.01)
+        except Exception as e:
+            print(e)
             print("ecnoder fail")
     def injest_ik(self,traj_4,time_to_execute = 1):
-        print("injecting traj",traj_4)
+        if len(traj_4) == 4:
+            traj_4.append(0);
+            traj_4.append(0);
 
+        print("injecting traj",traj_4)
         init_left_knee_last_offset = self.left_knee.moved_last_offset
         init_left_thigh_last_offset = self.left_thigh.moved_last_offset
+        init_left_hip_last_offset = self.left_hip.moved_last_offset
         init_right_knee_last_offset = self.right_knee.moved_last_offset
         init_right_thigh_last_offset = self.right_thigh.moved_last_offset
+        init_right_hip_last_offset = self.right_hip.moved_last_offset
 
 
         delta_left_knee =  traj_4[1] - self.left_knee.moved_last_offset;
         delta_left_thigh =  traj_4[0] - self.left_thigh.moved_last_offset;
+        delta_left_hip =  traj_4[4] - self.left_hip.moved_last_offset;
         delta_right_knee =  traj_4[3] - self.right_knee.moved_last_offset;
         delta_right_thigh =  traj_4[2] - self.right_thigh.moved_last_offset;
+        delta_right_hip =  traj_4[5] - self.right_hip.moved_last_offset;
 
 
         delta_left_knee *= 1/(1000*time_to_execute)
         delta_left_thigh *= 1/(1000*time_to_execute)
         delta_right_knee *= 1/(1000*time_to_execute)
         delta_right_thigh *= 1/(1000*time_to_execute)
+        delta_left_hip *= 1/(1000*time_to_execute)
+        delta_right_hip *= 1/(1000*time_to_execute)
 
         for i in range(int(1000*time_to_execute)):
             self.left_knee.move(init_left_knee_last_offset + delta_left_knee*i)
             self.left_thigh.move(init_left_thigh_last_offset + delta_left_thigh*i)
             self.right_knee.move(init_right_knee_last_offset + delta_right_knee*i)
             self.right_thigh.move(init_right_thigh_last_offset + delta_right_thigh*i)
+            self.left_hip.move(init_left_hip_last_offset + delta_left_hip*i)
+            self.right_hip.move(init_right_hip_last_offset + delta_right_hip*i)
     def injest_ik_delay(self,traj_4,time_to_execute = 500):
         print("injecting traj",traj_4)
         self.left_knee.moveIn(traj_4[1],time_to_execute)
@@ -108,7 +132,7 @@ if __name__ == "__main__":
 
     mark_4 = Bot()
     mark_4.home()
-
+    # mark_4.read()
 
 
     # mark_4.injest_ik([-4.299582831815598, 9.595166121368559, 4.288723309314223, 9.570967628619272])
@@ -127,10 +151,14 @@ if __name__ == "__main__":
     #     [0,0, -0.0, 0.0],
     # ]
     # traj_final_pos = [
-    #     [0,0, 14, -28],
     #     [0,0,0,0],
-    #     [-14, 28,0,0],
+    #     [-14,28, 14, -28],
     #     [0,0,0,0],
+        # [0,0,0,0],
+        # [0,0,0,0],
+        # [0,0,0,0],
+        # [-14, 28,0,0],
+        # [0,0,0,0],
     # ]
     # 20 20 
     # traj_final_pos = [
@@ -149,12 +177,12 @@ if __name__ == "__main__":
     #     [-4.299590703918358, 9.595183703208388, 4.288733652707215, -9.570990730086303],
     # ]
 
-    traj_final_pos =    [
-        [-18.95221119919228, 35.4368390426368, -0.0, -0.0],
-        [-4.299590703918358, 9.595183703208388, -0.0, -0.0],
-        [-4.299590703918358, 9.595183703208388, 18.936930266458663, -35.40180552152586],
-        [-4.299590703918358, 9.595183703208388, 4.288733652707215, -9.570990730086303],
-    ]
+    # traj_final_pos =    [
+    #     [-18.95221119919228, 35.4368390426368, -0.0, -0.0],
+    #     [-4.299590703918358, 9.595183703208388, -0.0, -0.0],
+    #     [-4.299590703918358, 9.595183703208388, 18.936930266458663, -35.40180552152586],
+    #     [-4.299590703918358, 9.595183703208388, 4.288733652707215, -9.570990730086303],
+    # ]
     # traj_final_pos = [
     #     [-34.79443542730939, 57.941060226143314, -0.0, -0.0],
     #     [-4.299518057178087, 9.595021451346701, -0.0, -0.0],
@@ -175,14 +203,49 @@ if __name__ == "__main__":
     #     [4.277724604737271, -9.546484917568748, -4.2886834523939985, 9.57087876956392],
     # ]
 
+    traj_final_pos =  [
+        [-18.936988630125086, 35.41234339799175, 0.0, 0.0],
+        [0, 0, 0, 0],
+        [0, 0, 18.947023817243757, -35.43517022819904],
+        [0, 0, 0, 0],
+    ]
+    x  = 13;
+    traj_high_foot = [
+        [-x, 2*x, 0.0, 0.0, 0.0 , -2.0],
+        # [-17.061858301371288, 35.87581869868777, 0.0, 0.0, 0.0 , -0.0],
+        [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
+        # [-0.0, 9.546566366780933, 15.655523569481783, -28.148578158772242, 2.0 , 0.0],
+        [-0.0, 0.0, x, -2*x, 0.0 , 0.0],
+        [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
+        # [-0.0, 9.546566366780933, 4.288755587337035, -9.57103987946287, 0.0 , 0.0],
+    ]
+    # traj_final_pos = [
+    # [-28.99699862064352, 50.4049533326476, -0.0, -0.0],
+    # [4.2777260441458065, -9.546488132449735, -0.0, -0.0],
+    # # [4.2777260441458065, -9.546488132449735, -0.0, -0.0],
+    # # [4.2777260441458065, -9.546488132449735, -0.0, -0.0],
+    # [4.2777260441458065, -9.546488132449735, 29.000213531330907, -50.4118660936847],
+    # [4.2777260441458065, -9.546488132449735, -4.288680843518162, 9.570872942766313],
+    # ]
 
-    for i in range(2):
-        for t4 in traj_final_pos:
-            # if i%2 == 0:
-            #     mark_4.injest_ik(t4,0.125)
-            # if i%2 == 1:
 
-            mark_4.injest_ik(t4,0.065)
+
+    for i in range(25):
+        for t4,i in zip(traj_high_foot,range(len(traj_high_foot))):
+                mark_4.injest_ik(t4,0.030)
+        # if i%2 == 1:
+        #     mark_4.injest_ik(t4,0.065)
+        # else:
+        #     mark_4.injest_ik(t4,0.125)            
+
+
+        # if i == 1:
+        #     time.sleep(0.125)
+
+# # #         # if i%2 == 0:
+    #         # if i%2 == 1:
+
+    #         mark_4.injest_ik(t4,0.065)
             # mark_4.injest_ik_delay(t4,150)
             # time.sleep(.7)
 
@@ -198,7 +261,7 @@ if __name__ == "__main__":
 # while 1:
 #     if time.time() > (tm + refresh):
 #         tm = time.time()
-        # mark_4.raise_foot(0,sin(t) *4.);
+#         mark_4.raise_foot(0,sin(t) *4.);
 #         # mark_4.raise_foot(1,sin(t) *4.);
 # mark_4.raise_foot(0,0);
 # mark_4.raise_foot(1,0);
