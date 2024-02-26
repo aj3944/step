@@ -4,9 +4,9 @@ from pinocchio.visualize import MeshcatVisualizer
 import numpy as np
 from numpy.linalg import solve, norm
 import webbrowser
-# from pylx16a.lx16a import *
+from test import Bot
+import time 
 
-# REMOVE BEFORE PUSHING
 import sys
 
 
@@ -25,7 +25,6 @@ class Motor:
 
     def move(self, offset=0):
         self.servo.move(self.center + offset)
-
 
 class Inverse_kinematics_Solver:
 
@@ -74,7 +73,7 @@ class Inverse_kinematics_Solver:
         )
         self.visualizer.initViewer()
         self.visualizer.loadViewerModel()
-        webbrowser.open("http://127.0.0.1:7001/static/")
+        webbrowser.open("http://127.0.0.1:7000/static/")
 
     def solve(self, R_des, T_des, foot):
         if foot == "right":
@@ -120,22 +119,22 @@ class Inverse_kinematics_Solver:
             q_dot = -J.T.dot(solve(J.dot(J.T) + self.damp * np.eye(6), err))
             q = pin.integrate(self.model, q, q_dot * self.DT)
 
-            # Collision check
-            pin.updateGeometryPlacements(
-                self.model, self.data, self.collision_model, self.collision_data, q
-            )  # updates geom_data by reference
+            # # Collision check
+            # pin.updateGeometryPlacements(
+            #     self.model, self.data, self.collision_model, self.collision_data, q
+            # )  # updates geom_data by reference
 
-            # an active pair is a pair of bodies in a joint considered for collision
-            collision_detected = pin.computeCollisions(
-                self.model,
-                self.data,
-                self.collision_model,
-                self.collision_data,
-                q,
-                True,
-            )  # this returns data,geom_data. polymorphic function
+            # # an active pair is a pair of bodies in a joint considered for collision
+            # collision_detected = pin.computeCollisions(
+            #     self.model,
+            #     self.data,
+            #     self.collision_model,
+            #     self.collision_data,
+            #     q,
+            #     True,
+            # )  # this returns data,geom_data. polymorphic function
 
-            if not collision_detected:
+            if True or not collision_detected :
                 for idx in range(self.model.nq):
                     # Assuming model.lowerPositionLimit and model.upperPositionLimit store the limits
                     q[idx] = max(
@@ -224,30 +223,18 @@ class Inverse_kinematics_Solver:
             )  # creates trajectory as numpy array and appends to list- not optimal
 
 
+def motor_map(traj_8):
+    return [np.rad2deg(traj_8[1]),np.rad2deg(traj_8[2])*-1,np.rad2deg(traj_8[5]),np.rad2deg(traj_8[6])]
+
+
 if __name__ == "__main__":
-    os.environ["ROS_PACKAGE_PATH"] = "/Users/Apple/Documents/Master/NYU_Robotics/Gait-Manipulation/hum_rob_ws/src"
-
-    py310_issue = input("ARE YOU HAVING TROUBLE WITH py310 AND MESHCAT?? [y/n] \n")
-    if py310_issue == "y":
-        sys.path = [
-            "/home/adi/anaconda3/envs/robotics_course_py310/lib/python3.10/site-packages"
-        ] + sys.path
-        print("adjusted sys.path\n")
-    else:
-        print("great! moving on!\n")
-
-    urdf_filename = "/Users/Apple/Documents/Master/NYU_Robotics/Gait-Manipulation/hum_rob_ws/src/six_dof/urdf/6dof_from_hip.urdf"
-    mesh_dir = "/Users/Apple/Documents/Master/NYU_Robotics/Gait-Manipulation/hum_rob_ws/src/six_dof/meshes"
+    urdf_filename = "/home/va/stepws/src/six_dof/urdf/6dof_from_hip.urdf"
+    mesh_dir = "/home/va/stepws/src/six_dof/meshes"
     ik_solver = Inverse_kinematics_Solver(urdf_filename, mesh_dir)
     # in y axis minus is forward , in z minus is upwards
-
-    target_coords=[]
-    calls= input("how many points do you want to reach?\n")
-    calls=int(calls)
-    for i in range(calls):
-        user_input = input("Enter foot and x,y,z  values separated by commas, remeber - is forward in y, + is up in z:\n")
-        xyz_coords = [item for item in user_input.split(",")]
-        target_coords.append(xyz_coords) #list element appended to list
+    ik_solver.march("left", 0.0, 0.015, 0.025)
+    ik_solver.march("left", 0.0, 0.005, 0.030)
+    ik_solver.march("left", 0.0, 0.0, 0.0)
     
     ik_success=[]
     for i in range(calls):
@@ -256,19 +243,26 @@ if __name__ == "__main__":
 
         # ik_solver.march("right", 0.0, -0.020, 0.010)
         # ik_solver.march("right", 0.0, 0.0, 0.0)
-
-        success=ik_solver.march(target_coords[i][0],float(target_coords[i][1]),float(target_coords[i][2]),float(target_coords[i][3]))
-        if  not success:
-            ik_success.append(success)
-            break
-        else:
-            ik_success.append(success)
-            
+    ik_solver.march("right", 0.0, 0.015, 0.025)
+    ik_solver.march("right", 0.0, 0.005, 0.030)
+    ik_solver.march("right", 0.0, 0.0, 0.0)
     # visualize
+    # ik_solver.create_visualizer()
+    # ik_solver.visualize()
 
-    if all(ik_success): # if all elements are True 
-        ik_solver.create_visualizer()
-        ik_solver.visualize()
-        print("\n" + str(len(ik_solver.joint_trajectories)))
-    else:
-        print("couldnt reach a point , please check.")
+    motor_traj_list =  [ [motor_map(y[-1])] for y in ik_solver.joint_configs]
+    # motor_traj_list =  [[motor_map(x) for x in y] for y in ik_solver.joint_configs]
+    # motor_traj_list =  [motor_map(x[-1]) for x  in ]
+    print(motor_traj_list)
+    mark_4 = Bot()
+    mark_4.home()
+    for traj_list in motor_traj_list:
+        for pose_4 in traj_list:
+            mark_4.injest_ik(pose_4,0.150)
+            # time.sleep(1)
+
+    # print(motor_traj_list[0][9000])
+    # print(len(ik_solver.joint_configs[1]))
+    # print(len(ik_solver.joint_configs[2]))
+    # print(len(ik_solver.joint_configs[3]))
+
