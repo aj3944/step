@@ -45,14 +45,17 @@ class Motor:
 class Bot:
 
     def __init__(self):
-
-        LX16A.initialize("/dev/ttyUSB0")
-        self.left_knee = Motor(1,120);
-        self.left_thigh = Motor(2,120);
-        self.left_hip = Motor(3,135);
-        self.right_hip = Motor(4,120);
-        self.right_thigh = Motor(5,83);
-        self.right_knee = Motor(6,70);
+        hip_pitch = 30 
+        leg_footing = 5 
+        hip_footing = -1 
+        # LX16A.initialize("/dev/ttyUSB1")
+        LX16A.initialize("/dev/ttyUSB1")
+        self.left_knee = Motor(1,120 + leg_footing);
+        self.left_thigh = Motor(2,80 + hip_pitch);
+        self.left_hip = Motor(3,135 + hip_footing);
+        self.right_hip = Motor(4,125 - hip_footing);
+        self.right_thigh = Motor(5,120 - hip_pitch);
+        self.right_knee = Motor(6,75 - leg_footing);
         
     def home(self):
         self.left_knee.move()
@@ -132,7 +135,8 @@ if __name__ == "__main__":
 
     mark_4 = Bot()
     mark_4.home()
-    # mark_4.read()
+    mark_4.read()
+    time.sleep(1)
 
 
     # mark_4.injest_ik([-4.299582831815598, 9.595166121368559, 4.288723309314223, 9.570967628619272])
@@ -203,13 +207,13 @@ if __name__ == "__main__":
     #     [4.277724604737271, -9.546484917568748, -4.2886834523939985, 9.57087876956392],
     # ]
 
-    traj_final_pos =  [
-        [-18.936988630125086, 35.41234339799175, 0.0, 0.0],
-        [0, 0, 0, 0],
-        [0, 0, 18.947023817243757, -35.43517022819904],
-        [0, 0, 0, 0],
-    ]
-    x  = 13;
+    # traj_final_pos =  [
+    #     [-18.936988630125086, 35.41234339799175, 0.0, 0.0],
+    #     [0, 0, 0, 0],
+    #     [0, 0, 18.947023817243757, -35.43517022819904],
+    #     [0, 0, 0, 0],
+    # ]
+    x  = 20;
     traj_high_foot = [
         [-x, 2*x, 0.0, 0.0, 0.0 , -2.0],
         # [-17.061858301371288, 35.87581869868777, 0.0, 0.0, 0.0 , -0.0],
@@ -228,11 +232,136 @@ if __name__ == "__main__":
     # [4.2777260441458065, -9.546488132449735, -4.288680843518162, 9.570872942766313],
     # ]
 
+    x  = 10;
+    y_right =  5;
+    y_left =  7;
+    traj_walk_foot = []
+    # #     # [-x, 2*x, 0.0, 0.0, 0.0 , -2.0],
+    #     # [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
+    #     [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
+    #     [-0.0, 0.0, 0.0, 0.0, -3.0 , -3.0],
+    #     [-0.0, 0.0, 0.0, 0.0, -y , -y],
+    #     [-0.0, 0.0, 0.0, 0.0, -y , -y],
+    #     [-0.0, 0.0, 0.0, 0.0, -y , -y],
+    #     [-0.0, 0.0, 0.0, 0.0, -y , -y],
+    #     [-0.0, 0.0, 0.0, 0.0, -y , -y],
+    #     [-0.0, 0.0, 0.0, 0.0, -y , -y],
+    #     [-0.0, 0.0, 0.0, 0.0, -y , -y],
+    #     [-0.0, 0.0, 0.0, 0.0, -y , -y],
+    #     [-0.0, 0.0, 0.0, 0.0, -y , -y],
+    #     [-0.0, 0.0, 0.0, 0.0, -y , -y],
+    #     [-0.0, 0.0, 0.0, 0.0, -y , -y],
+    #     # [-0.0, 0.0, x, -2*x, -10.0 , -10.0],
+    #     # [-0.0, 0.0, 0.0, 0.0, -5.0 , -5.0],
+    #     # [0., 0., x, -2*x, -1.0 , -10.0],
+    #     # [-0.0, 0.0, 0.0, 0.0, -5.0 , -5.0],
+    #     # [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
+    # #     # [-0.0, 0.0, x, -2*x, 0.0 , 0.0],
+    # #     # [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
+    # ]
 
+    # traj_high_foot = []
+    # # i_count = 3;
+
+    traj_walk_foot.append([0,0,0,0,0,0])
+    for i in range(10):
+        traj_walk_foot.append([0,0,0,0,i*y_right/10,i*y_right/10])
+    traj_walk_foot.append([0,5,0,-5,y_right,y_right])
+
+    traj_walk_foot.append([0,0,0,0,0,0])
+    for i in range(10):
+        traj_walk_foot.append([0,0,0,0,-i*y_left/10,-i*y_left/10])
+    traj_walk_foot.append([0,7,0,-7,-y_left,-y_left])
+
+
+
+
+    # # traj_walk_foot.append([0,0,0,0,0,0])
+    # # traj_walk_foot.append([0,0,0,0,0,0])
+    # # traj_walk_foot.append([0,0,0,0,0,0])
+    # for i in range(10):
+    #     traj_walk_foot.append([0,0,0,0,-i*y_left/10,-i*y_left/10])
+    # traj_walk_foot.append([4,0,-4,0,y_left,y_left])
+    # traj_walk_foot.append([14,0,-14,0,0,0])
+    # traj_walk_foot.append([0,0,0,0,0,0])
+    # traj_walk_foot.append([0,0,0,0,0,0])
+    # traj_walk_foot.append([0,0,0,0,0,0])
+    # traj_walk_foot.append([0,4,0,-4,y_left,y_left])
+    # traj_walk_foot.append([0,4,0,-4,y_left,y_left])
+    # traj_walk_foot.append([0,4,0,-4,y_left,y_left])
+    # traj_walk_foot.append([0,0,0,0,0,0])
+    # traj_walk_foot.append([0,0,0,0,0,0])
+    # traj_walk_foot.append([0,0,0,0,0,0])
+
+
+    # traj_walk_foot.append([0,0,-x,0,y,y])
+    # traj_walk_foot.append([-x,0,-x,0,y,y])
+    # traj_walk_foot.append([-x,0,-x,0,y,y])
+    # traj_walk_foot.append([-x,0,-x,0,y,y])
+    # traj_walk_foot.append([-x,x,-x,x,y,y])
+    # traj_walk_foot.append([0,0,0,0,0,0])
+    # traj_walk_foot.append([0,0,0,0,0,0])
+    # traj_walk_foot.append([0,0,0,0,0,0])
+    # traj_walk_foot.append([0,0,0,0,0,0])
+    # traj_walk_foot.append([0,0,0,0,0,0])
+    # traj_walk_foot.append([0,0,0,0,0,0])
+    # traj_walk_foot.append([0,0,0,0,0,0])
+    # # traj_high_foot.append([0,0,-x,0,y,y])
+    # # traj_high_foot.append([0,0,-x,0,y,y])
+    # # traj_high_foot.append([0,0,-x,0,y,y])
+    # traj_high_foot.append([x,0,0,x,y,y])
+    # traj_high_foot.append([0,0,0,x,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,0,y])
+    # # traj_high_foot.append([0,0,0,x,y,y])
+    # # traj_high_foot.append([0,x,0,x,y,y])
+    # # traj_high_foot.append([0,x,0,x,y,y])
+    # traj_high_foot.append([0,0,0,0,0,0])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,2*x,-2*x,y,y])
+    # traj_high_foot.append([0,0,2*x,-2*x,y,y])
+    # traj_high_foot.append([0,0,2*x,-2*x,y,y])
+    # traj_high_foot.append([0,0,2*x,-2*x,y,y])
+    # traj_high_foot.append([0,0,2*x,-2*x,y,y])
+    # traj_high_foot.append([x,0,2*x,-2*x,y,y])
+    # traj_high_foot.append([x,0,2*x,-2*x,y,y])
+    # traj_high_foot.append([x,0,2*x,-2*x,y,y])
+    # traj_high_foot.append([x,0,2*x,-2*x,y,y])
+    # traj_high_foot.append([x,0,2*x,-2*x,y,y])
+    # traj_high_foot.append([x,0,2*x,-2*x,y,y])
+    # traj_high_foot.append([x,0,2*x,-2*x,y,y])
+    # for i in range(i_count):
+    #     traj_high_foot.append([0,0,x/i_count*i, -2*x/i_count*i,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
+    # traj_high_foot.append([0,0,0,0,y,y])
 
     for i in range(25):
-        for t4,i in zip(traj_high_foot,range(len(traj_high_foot))):
-                mark_4.injest_ik(t4,0.030)
+        for t4,i in zip(traj_walk_foot,range(len(traj_walk_foot))):
+            mark_4.injest_ik(t4,0.030)
+            time.sleep(.1)
+        # time.sleep(.500)
         # if i%2 == 1:
         #     mark_4.injest_ik(t4,0.065)
         # else:
@@ -240,7 +369,6 @@ if __name__ == "__main__":
 
 
         # if i == 1:
-        #     time.sleep(0.125)
 
 # # #         # if i%2 == 0:
     #         # if i%2 == 1:

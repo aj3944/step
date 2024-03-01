@@ -208,7 +208,7 @@ class Inverse_kinematics_Solver:
 
 
 def motor_map(traj_8):
-    return [np.rad2deg(traj_8[1]),np.rad2deg(traj_8[2])*-1,np.rad2deg(traj_8[5]),np.rad2deg(traj_8[6])]
+    return [np.rad2deg(traj_8[1]),np.rad2deg(traj_8[2])*-1,np.rad2deg(traj_8[5]),np.rad2deg(traj_8[6]),np.rad2deg(traj_8[4]),np.rad2deg(traj_8[0])]
 
 
 if __name__ == "__main__":
@@ -219,13 +219,13 @@ if __name__ == "__main__":
     mesh_dir = "/home/va/stepws/src/six_dof/meshes"
     ik_solver = Inverse_kinematics_Solver(urdf_filename, mesh_dir)
     # in y axis minus is forward , in z minus is upwards
-    ik_solver.march("left", 0.0, 0.015, 0.025)
-    ik_solver.march("left", 0.0, 0.005, 0.030)
+    ik_solver.march("left", 0.00, 0.015, 0.025)
+    ik_solver.march("left", 0.01, 0.005, 0.030)
     ik_solver.march("left", 0.0, 0.0, 0.0)
     
 
     ik_solver.march("right", 0.0, 0.015, 0.025)
-    ik_solver.march("right", 0.0, 0.005, 0.030)
+    ik_solver.march("right", -0.01, 0.005, 0.030)
     ik_solver.march("right", 0.0, 0.0, 0.0)
     # visualize
     # ik_solver.create_visualizer()
