@@ -233,8 +233,8 @@ if __name__ == "__main__":
     # ]
 
     x  = 10;
-    y_right =  5;
-    y_left =  7;
+    y_right =  4;
+    y_left =  4;
     traj_walk_foot = []
     # #     # [-x, 2*x, 0.0, 0.0, 0.0 , -2.0],
     #     # [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
@@ -266,12 +266,12 @@ if __name__ == "__main__":
     traj_walk_foot.append([0,0,0,0,0,0])
     for i in range(10):
         traj_walk_foot.append([0,0,0,0,i*y_right/10,i*y_right/10])
-    traj_walk_foot.append([0,5,0,-5,y_right,y_right])
+    traj_walk_foot.append([5,0,-5,0,y_right,y_right])
 
     traj_walk_foot.append([0,0,0,0,0,0])
     for i in range(10):
         traj_walk_foot.append([0,0,0,0,-i*y_left/10,-i*y_left/10])
-    traj_walk_foot.append([0,7,0,-7,-y_left,-y_left])
+    traj_walk_foot.append([7,0,-7,0,-y_left,-y_left])
 
 
 
