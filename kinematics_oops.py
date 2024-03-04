@@ -7,6 +7,24 @@ import webbrowser
 from test import Bot
 import time 
 
+import sys
+
+
+class Motor:
+    center = 0
+
+    def __init__(self, ID, cent, min_ang=0, max_ang=240):
+        # self.I
+        self.center = cent
+        self.servo = LX16A(ID)
+        try:
+            self.servo.set_id(ID)
+            self.servo.set_angle_limits(min_ang, max_ang)
+        except ServoTimeoutError as e:
+            print(f"Servo {e.id_} is not responding. Exiting...")
+
+    def move(self, offset=0):
+        self.servo.move(self.center + offset)
 
 class Inverse_kinematics_Solver:
 
@@ -14,7 +32,7 @@ class Inverse_kinematics_Solver:
     def __init__(self, urdf_file, mesh_dir):
         self.urdf_file = urdf_file
         self.mesh_dir = mesh_dir
-        self.joint_configs = []
+        self.joint_trajectories = []
         self.actual_iterations = 0
 
         # solver params
@@ -68,13 +86,13 @@ class Inverse_kinematics_Solver:
         )  # think of oMdes as oTdes, the transfromation from desired to origin expressed in origin
 
         # CHECK THIS LOGIC
-        if len(self.joint_configs) == 0:
+        if len(self.joint_trajectories) == 0:
             q = pin.neutral(self.model)
 
         else:
-            q = self.joint_configs[-1][-1]
+            q = self.joint_trajectories[-1][-1]
             print(q)
-            
+
         trajectory = np.zeros((self.IT_MAX, 8), float)
         actual_iterations = 0
 
@@ -128,14 +146,12 @@ class Inverse_kinematics_Solver:
             i += 1
 
         if success:
+            print(i)
             print("Convergence achieved!")
             trajectory = trajectory[:actual_iterations]
-            last_value = trajectory[-1]  # Get the last value of the trajectory
-            #last_value=np.array([np.rad2deg(i) for i in last_value])
-            with open('trajectory_values.csv', 'a') as file:  # Open file in append mode
-                # Convert the NumPy array to a string with commas separating values and append a newline
-                np.savetxt(file, [last_value], delimiter=',', fmt='%s')
-            self.joint_configs.append(trajectory)
+            print("actual iter ", actual_iterations)
+            print(trajectory)
+            if actual_iterations: self.joint_trajectories.append(trajectory)
             return True
         else:
             print(
@@ -146,12 +162,12 @@ class Inverse_kinematics_Solver:
     def visualize(self):
         try:
             while True:
-                for i in range(len(self.joint_configs)):
-                    for j in range(len(self.joint_configs[i])):
-                        self.visualizer.display(self.joint_configs[i][j])
-                        # print(type(self.joint_configs[i][j]))
+                for i in range(len(self.joint_trajectories)):
+                    for j in range(len(self.joint_trajectories[i])):
+                        self.visualizer.display(self.joint_trajectories[i][j])
+                        # print(type(self.joint_trajectories[i][j]))
         except KeyboardInterrupt:
-            pass
+            print("keyboard interrupt")
 
     def march(
         self,
@@ -181,7 +197,7 @@ class Inverse_kinematics_Solver:
             self.create_model_and_data()
             self.create_geometric_model("visual")
             self.create_geometric_model("collision")
-            self.solve(R_des_right_foot_neutral, T_des_right_foot, foot)
+            return self.solve(R_des_right_foot_neutral, T_des_right_foot, foot)
 
         elif foot == "left":
             R_des_left_foot_neutral = np.array(
@@ -202,7 +218,7 @@ class Inverse_kinematics_Solver:
             self.create_model_and_data()
             self.create_geometric_model("visual")
             self.create_geometric_model("collision")
-            self.solve(
+            return self.solve(
                 R_des_left_foot_neutral, T_des_left_foot_neutral, foot
             )  # creates trajectory as numpy array and appends to list- not optimal
 
@@ -212,9 +228,6 @@ def motor_map(traj_8):
 
 
 if __name__ == "__main__":
-    os.environ["ROS_PACKAGE_PATH"] = "/home/va/stepws/src/six_dof"
-
-
     urdf_filename = "/home/va/stepws/src/six_dof/urdf/6dof_from_hip.urdf"
     mesh_dir = "/home/va/stepws/src/six_dof/meshes"
     ik_solver = Inverse_kinematics_Solver(urdf_filename, mesh_dir)
@@ -223,7 +236,13 @@ if __name__ == "__main__":
     ik_solver.march("left", 0.01, 0.005, 0.030)
     ik_solver.march("left", 0.0, 0.0, 0.0)
     
+    ik_success=[]
+    for i in range(calls):
+        # ik_solver.march("left", 0.0, -0.020, 0.010)
+        # ik_solver.march("left", 0.0, 0.0, 0.0)
 
+        # ik_solver.march("right", 0.0, -0.020, 0.010)
+        # ik_solver.march("right", 0.0, 0.0, 0.0)
     ik_solver.march("right", 0.0, 0.015, 0.025)
     ik_solver.march("right", -0.01, 0.005, 0.030)
     ik_solver.march("right", 0.0, 0.0, 0.0)
@@ -246,3 +265,4 @@ if __name__ == "__main__":
     # print(len(ik_solver.joint_configs[1]))
     # print(len(ik_solver.joint_configs[2]))
     # print(len(ik_solver.joint_configs[3]))
+
