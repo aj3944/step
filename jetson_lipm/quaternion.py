@@ -174,3 +174,14 @@ class Transformation(object):
         self.T = np.array(T);
 
         return self.T 
+    def __mul__(self, b):
+        # print(self.T_matrix())
+        # print(b.T_matrix())
+        try:
+            result = np.matmul(self.T_matrix(),b.T_matrix())
+            # print(result)
+            return_trans = Transformation.from_value(result)
+            return  return_trans
+        except Exception as e:
+            raise e
+            # raise e

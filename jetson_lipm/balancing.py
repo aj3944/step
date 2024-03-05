@@ -1,8 +1,18 @@
+import socket
+is_jetson = socket.gethostname() == 'nano'
+ 
+
 import numpy as np
 import time
-import accelerometer 
 
-from bot import Bot
+if is_jetson:
+    import accelerometer 
+    from bot import Bot
+
+from quaternion import Quaternion as qt
+from quaternion import Haal,Transformation
+
+from scipy.spatial.transform import Rotation as R
 
 
 
@@ -14,7 +24,6 @@ Kp = 100            # Proportional gain
 Kd = 0.01             # Derivative gain
 #Ki = 0.1            # Integral gain
 
-device = accelerometer.Accelerometer()
 
 # Initial conditions
 theta0 = 17 * np.pi / 18      # Initial angle (radians)
@@ -37,56 +46,63 @@ theta_dot_des = 0
 theta_des = np.pi
 
 
-mark_4 = Bot()
-mark_4.home()
-mark_4.read()
-time.sleep(1)
-
 
 # theta_dot_imu[0] = 0
 i = 0;
-while 1:
+
+
+control_angle = 20;
+
+
+IMU = Transformation()
+COM = Transformation()
+GCOM = Transformation()
+ANKLE = Transformation()
+HIP = Transformation()
+WORLD = Transformation()
+
+
+COM.tanslation = [0.04285,0,0.0062]
+GCOM.tanslation = [0,0,-0.290]
+ANKLE.translation = [0,0, 0.045]
+
+HIP.rotation = R.from_rotvec([0., control_angle, 0., ])
+HIP.translation = [0,0,.290]
+
+
+IMU_TO_HIP = HIP * ANKLE * GCOM * COM * IMU;
+# IMU_TO_HIP = HIP  * IMU;
+
+print(IMU_TO_HIP.T_matrix());
+
+
+
+
+
+if is_jetson:
+
+    device = accelerometer.Accelerometer()
+
+
+    mark_4 = Bot()
+    mark_4.home()
+    mark_4.read()
+    time.sleep(1)
+
+
+# BODY = Transformation()
+# COM = Transformation()
+# COM = Transformation()
+
+
+
+while is_jetson:
     i += 1 
     theta_dot_imu_x = tuple(device.readGyroData())[0]
-    # u.append(0)
-    # theta_dot.append(0)
-    # theta.append(0)
-    # '''
-    # Angular vel of IMU in COM frame
-    # '''
-    # x = 0.04285
-    # z = 0.00662
-
-    # t_IMU_COM = np.array([x,0,z])
-    # theta_dot_COM = np.array([theta_dot_imu_x, 0 , 0])+ np.cross(t_IMU_COM, np.array([0, 0 , theta_dot_imu_x]))
-
-    # print(theta_dot_COM)
 
 
-    # t_COM_GCOM = np.array([0,0,0.29])
-    # theta_dotGCOM = np.array(theta_dot_COM) + np.cross(t_COM_GCOM, np.array(theta_dot_COM))
-
-    # # print("Angular vel of gcom", theta_dotGCOM)
-
-    # # if -0.05 < theta_dot_imu_x < 0.05 :
-    # theta_dot_GCOM = np.append(theta_dot_GCOM,theta_dotGCOM)
-
-    # # print("theta dot gcom",theta_dot_GCOM)
-    # u[i] = m * L ** 2 * (theta_dot_GCOM[i] - theta_dot_GCOM[i - 1]) / dt
-
-    # print("Torque value for GCOM",u[i])
 
 
-    # theta_dot_dot_COM = g / L * np.sin(theta[i - 1]) + b / (m * L ** 2) * theta_dot[i - 1] + u[i - 1] / (m * L ** 2)
-
-    # theta_dot[i] = theta_dot[i - 1] + dt * theta_dot_dot_COM
-    # theta[i] = theta[i - 1] + dt * theta_dot[i]
-    # # theta[i] *= 0.88
-    # print("theta i :",theta[i])
-
-    # # Position control
-    # # ang_ctrl_GCOM = Kp * (theta_des - theta[i - 1]) + Kd * (theta_dot_des - theta_dot[i - 1])
-    # # ang_ctrl_GCOM = Kp * (theta_des - theta[i - 1]) 
 
     ang_ctrl_GCOM = Kp * theta_dot_imu_x ;
 
@@ -104,13 +120,3 @@ while 1:
     Motor values for the hip
     '''
     print(i,deg_hip)
-
-
-    # Supply motor ang_ctrl values
-    # u[i] = Torque [Since dealing with angles] [If position control then u[i] would be Force]
-    # # Check (IMU angl vel values) a
-
-    # time.sleep(0.5)
-    # print(u[i])
-
-    # print(theta_dot_imu_x)
