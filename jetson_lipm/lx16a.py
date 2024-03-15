@@ -94,6 +94,7 @@ class LX16A:
         LX16A._controller = serial.Serial(
             port=port, baudrate=115200, timeout=timeout, write_timeout=timeout
         )
+        print(LX16A._controller)
 
     @staticmethod
     def set_timeout(seconds: float) -> None:
