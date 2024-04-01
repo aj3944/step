@@ -51,8 +51,8 @@ class Bot:
     def readIMU(self):
         self.acc = list(self.IMU.readAccData())
         self.gyro = list(self.IMU.readGyroData())
-        tx = atan2(self.acc[0]/self.acc[2])
-        ty = atan2(self.acc[1]/self.acc[2])
+        tx = atan2(self.acc[0],self.acc[2])
+        ty = atan2(self.acc[1],self.acc[2])
         self.tilts = [tx,ty]
     def raise_foot(self,foot ,height):
         if foot == 0:
