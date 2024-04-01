@@ -75,12 +75,23 @@ class Bot:
         n_traj = self.Q_degress;
         n_traj[4] += ang;
         n_traj[5] += ang;
-        self.injest_ik(n_traj,0.04)
+        self.Q_degress = n_traj;
+        # self.injest_ik(n_traj,0.04)
     def swing_thighs(self,ang):
         n_traj = self.Q_degress;
         n_traj[0] += ang;
         n_traj[2] += ang;
-        self.injest_ik(n_traj,0.1)
+        self.Q_degress = n_traj;
+    def lift_leg(self,ang,leg = 0):
+        n_traj = self.Q_degress;
+        if leg == 0:          
+            n_traj[0] += ang;
+            n_traj[1] -= 2*ang;
+        else:
+            n_traj[2] += ang;
+            n_traj[3] -= 2*ang;            
+        self.Q_degress = n_traj;
+        # self.injest_ik(n_traj,0.1)
     def read(self):
         try:
             self.right_knee.read()
@@ -98,6 +109,8 @@ class Bot:
         except Exception as e:
             print(e)
             print("ecnoder fail")
+    def exec_ik(self,time_to_execute = 1):
+        self.injest_ik(self.Q_degress,time_to_execute);
     def injest_ik(self,traj_4,time_to_execute = 1):
         if len(traj_4) == 4:
             traj_4.append(0);
