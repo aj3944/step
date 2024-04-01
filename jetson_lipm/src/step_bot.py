@@ -30,20 +30,25 @@ class Bot:
     atilts = [0,0]
     gtilts = [0,0]
     int_time = 0
+    my_time = 0
+    prev_time = 0
     Q_degress = [0,0,0,0,0,0]
     def __init__(self):
-        LX16A.initialize("/dev/ttyTHS1")
+        # LX16A.initialize("/dev/ttyTHS1")
+        LX16A.initialize("/dev/ttyUSB0")
         self.IMU = imu.Accelerometer()
         hip_pitch = 35 
         hip_offset = -1;
         leg_footing = 0;
-        hip_footing = 3
+        hip_footing = 4
         self.left_knee = Motor(11,124 + leg_footing*2);
         self.left_thigh = Motor(12,82 + hip_pitch +        leg_footing);
         self.left_hip = Motor(13,132 + hip_footing + hip_offset);
         self.right_hip = Motor(24,128 - hip_footing + hip_offset);
         self.right_thigh = Motor(25,123 - hip_pitch -  leg_footing);
         self.right_knee = Motor(26,73 - leg_footing*2);
+        self.my_time = time.time()
+        self.prev_time = time.time()
         self.readIMU()
     def home(self):
         self.left_knee.move()
@@ -52,6 +57,7 @@ class Bot:
         self.right_knee.move()
         self.right_thigh.move()
         self.right_hip.move()
+        self.Q_degress = [0,0,0,0,0,0]
     def readIMU(self):
         if self.int_time == 0:
             prev_time = time.time()
@@ -85,11 +91,25 @@ class Bot:
     def lift_leg(self,ang,leg = 0):
         n_traj = self.Q_degress;
         if leg == 0:          
-            n_traj[0] += ang;
-            n_traj[1] -= 2*ang;
+            n_traj[0] -= ang;
+            n_traj[1] += 2*ang;
         else:
             n_traj[2] += ang;
             n_traj[3] -= 2*ang;            
+        self.Q_degress = n_traj;
+    def abduct_leg(self,ang,leg = 0):
+        n_traj = self.Q_degress;
+        if leg == 0:          
+            n_traj[4] -= ang;
+        else:
+            n_traj[5] += ang;            
+        self.Q_degress = n_traj;
+    def kick_leg(self,ang,leg = 0):
+        n_traj = self.Q_degress;
+        if leg == 0:          
+            n_traj[1] -= ang;
+        else:
+            n_traj[3] += ang;            
         self.Q_degress = n_traj;
         # self.injest_ik(n_traj,0.1)
     def read(self):
@@ -116,6 +136,10 @@ class Bot:
             traj_4.append(0);
             traj_4.append(0);
         self.Q_degress = traj_4;
+        self.my_time = 1000*(time.time() - self.prev_time);
+        self.prev_time = time.time();
+        print(" ",self.my_time,end="\t")
+        print(" ",time_to_execute*1000,end="\t")
         print("injecting traj",traj_4)
         init_left_knee_last_offset = self.left_knee.moved_last_offset
         init_left_thigh_last_offset = self.left_thigh.moved_last_offset
