@@ -73,9 +73,9 @@ class Bot:
             self.right_knee.move(height);
     def swing_hips(self,ang):
         n_traj = self.Q_degress;
+        n_traj[4] += ang;
         n_traj[5] += ang;
-        n_traj[6] += ang;
-        self.injest_ik(n_traj)
+        self.injest_ik(n_traj,0.05)
     def read(self):
         try:
             self.right_knee.read()
