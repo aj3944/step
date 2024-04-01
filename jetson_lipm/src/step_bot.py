@@ -27,7 +27,9 @@ class Bot:
     IMU = False
     acc =  [ 0,0,0]
     gyro = [ 0,0,0]
-    tilts = [0,0]
+    atilts = [0,0]
+    gtilts = [0,0]
+    int_time = 0
     def __init__(self):
         LX16A.initialize("/dev/ttyTHS1")
         self.IMU = imu.Accelerometer()
@@ -41,6 +43,7 @@ class Bot:
         self.right_hip = Motor(24,128 - hip_footing + hip_offset);
         self.right_thigh = Motor(25,123 - hip_pitch -  leg_footing);
         self.right_knee = Motor(26,73 - leg_footing*2);
+        self.readIMU()
     def home(self):
         self.left_knee.move()
         self.left_thigh.move()
@@ -49,11 +52,19 @@ class Bot:
         self.right_thigh.move()
         self.right_hip.move()
     def readIMU(self):
+        if int_time == 0:
+            prev_time = time.time()
+        else:
+            prev_time = int_time
+        int_time = time.time()
+        delta_t = int_time - prev_time;
+
         self.acc = list(self.IMU.readAccData())
         self.gyro = list(self.IMU.readGyroData())
         tx = atan2(self.acc[0],self.acc[2])
         ty = atan2(self.acc[1],self.acc[2])
-        self.tilts = [tx,ty]
+        self.atilts = [tx,ty]
+        self.gtilts = [self.gtilts[0] + delta_t*self.gyro[0],self.gtilts[1] + delta_t*self.gyro[1]]
     def raise_foot(self,foot ,height):
         if foot == 0:
             self.left_knee.move(height);
