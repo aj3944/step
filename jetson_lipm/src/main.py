@@ -9,6 +9,11 @@ if __name__ == "__main__":
     print(mark_4.acc)
     print(mark_4.gyro)
     mark_4.readIMU()
+
+    mark_4.swing_hips(5)
+    mark_4.swing_hips(-5)
+
+    mark_4.readIMU()
     print(mark_4.acc)
     print(mark_4.gyro)
     print(mark_4.atilts)
