@@ -48,8 +48,8 @@ class Bot:
         self.right_thigh.move()
         self.right_hip.move()
     def readIMU(self):
-        self.acc = self.IMU.readAccData()
-        self.gyro = self.IMU.readGyroData()
+        self.acc = list(self.IMU.readAccData())
+        self.gyro = list(self.IMU.readGyroData())
     def raise_foot(self,foot ,height):
         if foot == 0:
             self.left_knee.move(height);
