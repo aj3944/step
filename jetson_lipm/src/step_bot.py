@@ -75,12 +75,12 @@ class Bot:
         n_traj = self.Q_degress;
         n_traj[4] += ang;
         n_traj[5] += ang;
-        self.injest_ik(n_traj)
+        self.injest_ik(n_traj,0.04)
     def swing_thighs(self,ang):
         n_traj = self.Q_degress;
         n_traj[0] += ang;
-        n_traj[2] -= ang;
-        self.injest_ik(n_traj)
+        n_traj[2] += ang;
+        self.injest_ik(n_traj,0.1)
     def read(self):
         try:
             self.right_knee.read()
