@@ -30,6 +30,7 @@ class Bot:
     atilts = [0,0]
     gtilts = [0,0]
     int_time = 0
+    Q_degress = [0,0,0,0,0,0]
     def __init__(self):
         LX16A.initialize("/dev/ttyTHS1")
         self.IMU = imu.Accelerometer()
@@ -70,6 +71,11 @@ class Bot:
             self.left_knee.move(height);
         else:
             self.right_knee.move(height);
+    def swing_hips(self,ang):
+        n_traj = self.Q_degress;
+        n_traj[5] += ang;
+        n_traj[6] += ang;
+        self.injest_ik(n_traj)
     def read(self):
         try:
             self.right_knee.read()
@@ -91,7 +97,7 @@ class Bot:
         if len(traj_4) == 4:
             traj_4.append(0);
             traj_4.append(0);
-
+        self.Q_degress = traj_4;
         print("injecting traj",traj_4)
         init_left_knee_last_offset = self.left_knee.moved_last_offset
         init_left_thigh_last_offset = self.left_thigh.moved_last_offset
