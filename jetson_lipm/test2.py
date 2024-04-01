@@ -47,9 +47,9 @@ class Motor:
 class Bot:
 
     def __init__(self):
-        hip_pitch = 25 
-        leg_footing = 0
-        hip_footing = 3
+        hip_pitch = 45 
+        leg_footing = 1
+        hip_footing = 2
         # LX16A.initialize("/dev/ttyUSB1")
         res = LX16A.initialize("/dev/ttyUSB0")
         # res = LX16A.initialize("/dev/ttyTHS1")
@@ -57,12 +57,12 @@ class Bot:
         err = True;
         while err:
             try:
-                self.left_knee = Motor(11,120 + leg_footing);
-                self.left_thigh = Motor(12,80 + hip_pitch);
+                self.left_knee = Motor(11,124 + leg_footing*2);
+                self.left_thigh = Motor(12,80 + hip_pitch +        leg_footing);
                 self.left_hip = Motor(13,132 + hip_footing);
                 self.right_hip = Motor(24,128 - hip_footing);
-                self.right_thigh = Motor(25,128 - hip_pitch);
-                self.right_knee = Motor(26,73 - leg_footing);
+                self.right_thigh = Motor(25,128 - hip_pitch -  leg_footing);
+                self.right_knee = Motor(26,73 - leg_footing*2);
                 err = False
             except Exception as e:
                 print(e)
@@ -167,8 +167,8 @@ def step_traj(step_len_l = 0.1,step_len_r = 0.1):
 def smart_step_traj(step_len_l = 0.1,step_len_r = 0.1):
     xl  = step_len_l;
     xr = step_len_r;
-    del_shift_L = -6;
-    del_shift_R = 6;
+    del_shift_L = -5;
+    del_shift_R = 5;
     # traj_high_foot = [
     #     [-0 , 0 , 0.0, 0.0,del_shift_R, del_shift_R],
     #     # [-0 , 2*xl , 0.0, 0.0,del_shift_R, del_shift_R],
@@ -182,25 +182,35 @@ def smart_step_traj(step_len_l = 0.1,step_len_r = 0.1):
     #     [-0.0, 0.0, 0, 0, 0.0 , 0.0],
     # ]  
     traj_high_foot = [
-        [-0 , 0 , 0.0, 0.0,0, del_shift_R],
-        # [-0 , 2*xl , 0.0, 0.0,del_shift_R, del_shift_R],
-        [-xl , 2*xl , 0, 0.0,0, del_shift_R],
+        [0 , 0 , 0.0, 0.0,del_shift_R, del_shift_R],
+        # [-xl , xl , xr, 0.0,del_shift_R, del_shift_R],
+        [-xl , 2*xl , 0, 0.0,del_shift_R, del_shift_R],
+        # [-0 , 2*xl , 0.0, 0.0,0, del_shift_R],
+        # [-xl , 2*xl , 0, 0.0,del_shift_R, del_shift_R],
         # [-0.0, 0.0, 0, -0, del_shift_L , del_shift_L],
         # [-0.0, 0.0, -xr, 0, 0.0 , 0.0],
-        [-xl , 0 , -xr, 0.0,del_shift_L, del_shift_L],
+        # [-xl , 0 , -xr, 0.0,del_shift_L, del_shift_L],
 
-        [-0 , 0 , 0.0, 0,del_shift_L, 0],
-
-
+        # [-0 , 0 , 0.0, 0,del_shift_R, del_shift_R],
 
 
-        [-0 , 0 , xr, -2*xr,del_shift_L, 0],
+        # [-xl , 0, 0, 0.0,del_shift_R, del_shift_R],
+        [0, 0, 0, 0,del_shift_L, del_shift_L],
+        [0, 0, xr, -2*xr,del_shift_L, del_shift_L],
 
-        [xl , 0 , xr, 0.0,del_shift_R, del_shift_R],
+
+        # [-0 , 0 , xr, -2*xr,del_shift_L, 0],
+
+        # [xl , 0 , xr, 0.0,del_shift_R, del_shift_R],
 
 
         # # [-0.0, 0.0, 0, -0, del_shift_R , del_shift_R],
-        [-0.0, 0.0, 0, 0, 0.0 , 0.0],
+        # [-0.0, 0.0, 0, 0, 0.0 , 0.0],
+        # [-0.0, 0.0, 0, 0, 0.0 , 0.0],
+        # [-0.0, 0.0, 0, 0, 0.0 , 0.0],
+        # [-0.0, 0.0, 0, 0, 0.0 , 0.0],
+        # [-0.0, 0.0, 0, 0, 0.0 , 0.0],
+        # [-0.0, 0.0, 0, 0, 0.0 , 0.0],
     ]  
     return traj_high_foot
 
@@ -246,10 +256,12 @@ if __name__ == "__main__":
         traj_move_jetson.append(realsense_ang(0))
         traj_move_jetson.append(realsense_ang(-30))
     # traj_high_foot.extend(step_traj(0,0));
-    for i in range(100): 
-        traj_high_foot.extend(smart_step_traj(8,));
+    for i in range(2): 
+        traj_high_foot.extend(smart_step_traj(6,6));
+    traj_high_foot.append([0,0,0,0,0,0])
 
-    exec_traj(traj_move_jetson,0.2);
+    # exec_traj(traj_move_jetson,0.2);
+    exec_traj(traj_high_foot,0.025);
 
                 # mark_4.injest_ik(t4,0.01)
 

@@ -45,19 +45,20 @@ class Motor:
 class Bot:
 
     def __init__(self):
-        hip_pitch = 25 
-        leg_footing = 0
+        hip_pitch = 42 
+        leg_footing = 1
         hip_footing = 3
         # LX16A.initialize("/dev/ttyUSB1")
-        res = LX16A.initialize("/dev/ttyUSB0")
-        # res = LX16A.initialize("/dev/ttyTHS1")
+        # res = LX16A.initialize("/dev/ttyUSB0")
+        res = LX16A.initialize("/dev/ttyTHS1")
         print(res)
-        self.left_knee = Motor(1,120 + leg_footing);
-        self.left_thigh = Motor(2,80 + hip_pitch);
-        self.left_hip = Motor(3,132 + hip_footing);
-        self.right_hip = Motor(4,128 - hip_footing);
-        self.right_thigh = Motor(5,122 - hip_pitch);
-        self.right_knee = Motor(6,73 - leg_footing);
+        self.left_knee = Motor(11,124 + leg_footing*2);
+        self.left_thigh = Motor(12,78 + hip_pitch +        leg_footing);
+        self.left_hip = Motor(13,134 + hip_footing);
+        self.right_hip = Motor(24,128 - hip_footing);
+        self.right_thigh = Motor(25,128 - hip_pitch -  leg_footing);
+        self.right_knee = Motor(26,73 - leg_footing*2);
+        
         
     def home(self):
         self.left_knee.move()
@@ -138,7 +139,7 @@ def step_traj(step_len_l = 0.1,step_len_r = 0.1):
 
     del_squat_A_t_l = -1*step_len_l;
     del_squat_A_t_r = -1*step_len_r;
-    del_squat_A_f = 0;
+    del_squat_A_f = 1;
     del_squat_B = 15;
 
     del_shift_L = -6;

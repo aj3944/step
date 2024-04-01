@@ -55,16 +55,16 @@ class Bot:
     def __init__(self):
         hip_pitch = 25 
         leg_footing = 0
-        hip_footing = 3
+        hip_footing = 0
         # LX16A.initialize("/dev/ttyUSB1")
         # res = LX16A.initialize("/dev/ttyUSB0")
         print(res)
-        self.left_knee = Motor(11,120 + leg_footing);
-        self.left_thigh = Motor(12,80 + hip_pitch);
+        self.left_knee = Motor(11,124 + leg_footing*2);
+        self.left_thigh = Motor(12,80 + hip_pitch +        leg_footing);
         self.left_hip = Motor(13,132 + hip_footing);
         self.right_hip = Motor(24,128 - hip_footing);
-        self.right_thigh = Motor(25,130 - hip_pitch);
-        self.right_knee = Motor(26,73 - leg_footing);
+        self.right_thigh = Motor(25,128 - hip_pitch -  leg_footing);
+        self.right_knee = Motor(26,73 - leg_footing*2);
         
     def home(self):
         self.left_knee.move()
@@ -166,20 +166,8 @@ def step_traj(step_len_l = 0.1,step_len_r = 0.1):
 def smart_step_traj(step_len_l = 0.1,step_len_r = 0.1):
     xl  = step_len_l;
     xr = step_len_r;
-
-    # del_squat_A_t_l = -1*step_len_l ;
-    # del_squat_A_t_r = -1*step_len_r;
-    # del_squat_A_f = 0;
-    # del_squat_B = 15;
-
     del_shift_L = -6;
     del_shift_R = 6;
-
-    # del_shift_L = -0;
-    # del_shift_R = 0;
-
-
-
     traj_high_foot = [
         [-xl , 2*xl  , 0.0, 0.0, del_shift_L , del_shift_L],
         [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
@@ -188,7 +176,7 @@ def smart_step_traj(step_len_l = 0.1,step_len_r = 0.1):
     ]  
     return traj_high_foot
 
-res = LX16A.initialize("/dev/ttyTHS1")
+res = LX16A.initialize("/dev/ttyUSB0")
 
 if not __name__ == "__main__":
     m1 = Motor(6,100);
@@ -331,17 +319,17 @@ if  __name__ == "__main__":
     # ]
     i = 0;
 
-    step = 7;
+    step = 2;
 
-    mark_4.injest_ik(traj_high_foot[i],0.015)
-    mark_4.injest_ik(traj_high_foot[i+1],0.015)
-    mark_4.injest_ik(traj_high_foot[i+2],0.015)
-    mark_4.injest_ik(traj_high_foot[i+3],0.015)
-    i +=4 ;
-    mark_4.injest_ik(traj_high_foot[i],0.015)
-    mark_4.injest_ik(traj_high_foot[i+1],0.015)
-    mark_4.injest_ik(traj_high_foot[i+2],0.015)
-    mark_4.injest_ik(traj_high_foot[i+3],0.015)
+    # mark_4.injest_ik(traj_high_foot[i],0.015)
+    # mark_4.injest_ik(traj_high_foot[i+1],0.015)
+    # mark_4.injest_ik(traj_high_foot[i+2],0.015)
+    # mark_4.injest_ik(traj_high_foot[i+3],0.015)
+    # i +=4 ;
+    # mark_4.injest_ik(traj_high_foot[i],0.015)
+    # mark_4.injest_ik(traj_high_foot[i+1],0.015)
+    # mark_4.injest_ik(traj_high_foot[i+2],0.015)
+    # mark_4.injest_ik(traj_high_foot[i+3],0.015)
     lf = step;
     rf = step;
     tol_yaw = 0.2;
@@ -350,18 +338,18 @@ if  __name__ == "__main__":
         i+=4 
 
         # global yaw
-        gx,gy,gz = device.readGyroData()
-        yaw += gz;
-        print("yaw:",yaw);
-        if yaw > tol_yaw:
-            lf = 1.5
-            rf = step;
-        elif yaw < -tol_yaw:
-            rf = 1.5
-            lf = step;
-        else:
-            lf = step;
-            rf = step;
+        # gx,gy,gz = device.readGyroData()
+        # yaw += gz;
+        # print("yaw:",yaw);
+        # if yaw > tol_yaw:
+        #     lf = 1.5
+        #     rf = step;
+        # elif yaw < -tol_yaw:
+        #     rf = 1.5
+        #     lf = step;
+        # else:
+        #     lf = step;
+        #     rf = step;
         corr_traj = smart_step_traj(lf,rf)
         traj_high_foot.extend(corr_traj);
         mark_4.injest_ik(traj_high_foot[i],0.015)

@@ -1,38 +1,48 @@
-from math import sin, cos,pi,atan2
+from math import sin, cos,pi
 from lx16a import *
 import time
-import imu 
 
 class Motor:
     center = 0
     moved_last_offset = 0;
+
     def __init__(self,ID,cent,min_ang = 0,max_ang = 240):
+        # self.I
         self.center = cent
         try:
             self.servo =  LX16A(ID)
+        # try:
+        #     pass
+        #     # self.servo.set_id(ID)
+        #     # self.servo.set_angle_limits(min_ang,max_ang)
         except Exception as e:
             print(e)
+            # print(f"Servo {e.id_} is not responding. Exiting...")
     def move(self,offset =0 ):
         goal_pos = self.center + offset;
         self.moved_last_offset = offset 
+        # print(goal_pos)
         self.servo.move(goal_pos);
     def moveIn(self,offset =0 , ms_to_move = 500):
         goal_pos = self.center + offset;
         self.moved_last_offset = offset 
+        # print(goal_pos)
         self.servo.move(goal_pos,ms_to_move);
+    # def moveIn(self,offset =0 ,time_to_move = 1):
+    #     goal_pos = self.center + offset
+    #     # print(goal_pos)
+    #     self.servo.move(goal_pos);
+
+    #     diff = self.center + offset - moved_to_last;
+
+
     def read(self):
         print(self.servo.get_last_instant_move_hw());
-
 class Bot:
-    IMU = False
-    acc =  [ 0,0,0]
-    gyro = [ 0,0,0]
-    atilts = [0,0]
-    gtilts = [0,0]
-    int_time = 0
+
     def __init__(self):
+
         LX16A.initialize("/dev/ttyTHS1")
-        self.IMU = imu.Accelerometer()
         hip_pitch = 35 
         hip_offset = -1;
         leg_footing = 0;
@@ -43,7 +53,7 @@ class Bot:
         self.right_hip = Motor(24,128 - hip_footing + hip_offset);
         self.right_thigh = Motor(25,123 - hip_pitch -  leg_footing);
         self.right_knee = Motor(26,73 - leg_footing*2);
-        self.readIMU()
+        
     def home(self):
         self.left_knee.move()
         self.left_thigh.move()
@@ -51,25 +61,13 @@ class Bot:
         self.right_knee.move()
         self.right_thigh.move()
         self.right_hip.move()
-    def readIMU(self):
-        if self.int_time == 0:
-            prev_time = time.time()
-        else:
-            prev_time = self.int_time
-        self.int_time = time.time()
-        delta_t = self.int_time - prev_time;
-
-        self.acc = list(self.IMU.readAccData())
-        self.gyro = list(self.IMU.readGyroData())
-        tx = atan2(self.acc[0],self.acc[2])
-        ty = atan2(self.acc[1],self.acc[2])
-        self.atilts = [tx,ty]
-        self.gtilts = [self.gtilts[0] + delta_t*self.gyro[0],self.gtilts[1] + delta_t*self.gyro[1]]
     def raise_foot(self,foot ,height):
         if foot == 0:
             self.left_knee.move(height);
+            # self.left_thigh.move(height);
         else:
             self.right_knee.move(height);
+            # self.right_thigh.move(height);
     def read(self):
         try:
             self.right_knee.read()
@@ -129,3 +127,87 @@ class Bot:
         self.left_thigh.moveIn(traj_4[0],time_to_execute)
         self.right_knee.moveIn(traj_4[3],time_to_execute)
         self.right_thigh.moveIn(traj_4[2],time_to_execute)
+
+if __name__ == "__main__":
+
+    mark_4 = Bot()
+    mark_4.home()
+    time.sleep(3)
+
+    traj_final_pos =  [
+        [-18.936988630125086, 35.41234339799175, 0.0, 0.0],
+        [0, 0, 0, 0],
+        [0, 0, 18.947023817243757, -35.43517022819904],
+        [0, 0, 0, 0],
+    ]
+    # x  = 5;
+    x  = -25;
+    x_prime  = 10;
+    y = 4;
+    # y = 10;
+
+    y_right =  4;
+    y_left =  4;
+    traj_walk_foot = [];
+
+    llstep = -5;
+
+    traj_walk_foot.append([0,0,0,0,0,0])
+    # for i in range(10):
+    #     traj_walk_foot.append([0,0,0,0,i*y_right/10,i*y_right/10])
+    traj_walk_foot.append([0,0,0,0,y_right,y_right])
+
+    traj_walk_foot.append([-llstep,0,-llstep,0,0,0])
+    # for i in range(10):
+    #     traj_walk_foot.append([0,0,0,0,-i*y_left/10,-i*y_left/10])
+    traj_walk_foot.append([0,0,0,0,-y_left,-y_left])
+
+    traj_walk_foot.append([llstep,0,llstep,0,0,0])
+    traj_walk_foot.append([0,0,0,0,0,0])
+
+    traj_high_foot = [
+        # [-0, 0, 0.0, 0.0, -y , -y],
+        [0, 0, 0.0, 0.0, y , y],
+        # [x, 0, 0.0, 0.0, y , y],
+        [x, -2*x, -x_prime, 0.0, y , y],
+        # [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
+        # [-2*x, 0, -x, 0, y, y],
+        # [-0.0, 0.0, -x, -2*x, y, y],
+        # [-0.0, 0.0, x, -2*x, y, y],
+        [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
+        [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
+        [0, 0, 0.0, 0.0, -y , -y],
+        [x_prime, 0, -x, 2*x, -y , -y],
+        [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
+    ]
+    speeds = [
+        0.08,
+        0.02,
+        0.01,
+        0.04,
+        0.04,
+        0.02,
+        0.01,
+        0.01,
+    ]
+    # traj_high_foot = [
+    #     [-x, 2*x, 0.0, 0.0, -y , -y],
+    #     # [-2*x, 0, -x, 0.0, -y , -y],
+    #     # [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
+    #     # [-2*x, 0, -x, 0, y, y],
+    #     # [-0.0, 0.0, -x, -2*x, y, y],
+    #     [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
+    #     [-0.0, 0.0, x, -2*x, y, y],
+    #     [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
+    # ]
+
+
+
+    for i in range(4):
+        for t4,i in zip(traj_walk_foot,range(len(traj_walk_foot))):
+                mark_4.injest_ik(t4,0.024)
+
+
+
+
+
