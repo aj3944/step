@@ -11,3 +11,4 @@ if __name__ == "__main__":
     mark_4.readIMU()
     print(mark_4.acc)
     print(mark_4.gyro)
+    print(mark_4.tilts)

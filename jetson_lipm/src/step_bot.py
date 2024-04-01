@@ -1,4 +1,4 @@
-from math import sin, cos,pi
+from math import sin, cos,pi,atan2
 from lx16a import *
 import time
 import imu 
@@ -27,6 +27,7 @@ class Bot:
     IMU = False
     acc =  [ 0,0,0]
     gyro = [ 0,0,0]
+    tilts = [0,0]
     def __init__(self):
         LX16A.initialize("/dev/ttyTHS1")
         self.IMU = imu.Accelerometer()
@@ -50,6 +51,9 @@ class Bot:
     def readIMU(self):
         self.acc = list(self.IMU.readAccData())
         self.gyro = list(self.IMU.readGyroData())
+        tx = atan2(self.acc[0]/self.acc[2])
+        ty = atan2(self.acc[1]/self.acc[2])
+        self.tilts = [tx,ty]
     def raise_foot(self,foot ,height):
         if foot == 0:
             self.left_knee.move(height);
