@@ -2,9 +2,36 @@
 
 from step_bot import Bot
 import time
+from plotting import MainWindow
+
+
+
+def rand_etter():
+    return randint(20, 40)
+
+
 
 
 if __name__ == "__main__":
+
+
+
+    app = QtWidgets.QApplication([])
+    main = MainWindow([rand_etter,rand_etter,rand_etter])
+
+
+
+
+    timer = QtCore.QTimer()
+    timer.setInterval(300)
+    timer.timeout.connect(main.updater)
+    timer.start()
+
+
+    main.show()
+    app.exec()
+
+
 
     mark_4 = Bot()
     mark_4.home()
