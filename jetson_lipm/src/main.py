@@ -2,12 +2,12 @@
 
 from step_bot import Bot
 import time
-from plotting import MainWindow
-
+from plotting import plotter
 
 
 def rand_etter():
-    return randint(20, 40)
+    return np.random.randint(0, 40,1)
+
 
 
 
@@ -16,21 +16,22 @@ if __name__ == "__main__":
 
 
 
-    app = QtWidgets.QApplication([])
-    main = MainWindow([rand_etter,rand_etter,rand_etter])
+    # app = QtWidgets.QApplication([])
+    # main = MainWindow([rand_etter,rand_etter,rand_etter])
 
 
 
 
-    timer = QtCore.QTimer()
-    timer.setInterval(300)
-    timer.timeout.connect(main.updater)
-    timer.start()
+    # timer = QtCore.QTimer()
+    # timer.setInterval(300)
+    # timer.timeout.connect(main.updater)
+    # timer.start()
 
 
-    main.show()
-    app.exec()
+    # main.show()
+    # app.exec()
 
+    pt = plotter(rand_etter)
 
 
     mark_4 = Bot()
