@@ -72,6 +72,8 @@ class Bot:
         ty = atan2(self.acc[1],self.acc[2])
         self.atilts = [tx,ty]
         self.gtilts = [self.gtilts[0] + delta_t*self.gyro[0],self.gtilts[1] + delta_t*self.gyro[1]]
+    def print_state(self):
+        print(self.atilts,self.gtilts)
     def raise_foot(self,foot ,height):
         if foot == 0:
             self.left_knee.move(height);
@@ -138,9 +140,10 @@ class Bot:
         self.Q_degress = traj_4;
         self.my_time = 1000*(time.time() - self.prev_time);
         self.prev_time = time.time();
-        print(" ",self.my_time,end="\t")
-        print(" ",time_to_execute*1000,end="\t")
-        print("injecting traj",traj_4)
+        # print(" ",self.my_time,end="\t")
+        # print(" ",time_to_execute*1000,end="\t")
+        # print("injecting traj",traj_4)
+
         init_left_knee_last_offset = self.left_knee.moved_last_offset
         init_left_thigh_last_offset = self.left_thigh.moved_last_offset
         init_left_hip_last_offset = self.left_hip.moved_last_offset
