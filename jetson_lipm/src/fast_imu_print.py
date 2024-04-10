@@ -58,7 +58,7 @@ def animate(i):
 		mark_4.injest_ik_delay(traj_list[traj_index]);
 		time_old = time.time()
 	accs = list(IMU.readAccData())
-	gyros = [x/100 for x in IMU.readGyroData()]
+	gyros = list(IMU.readGyroData())
 	ys[0].append(accs[0]);
 	ys[1].append(accs[1]);
 	ys[2].append(accs[2]);
@@ -70,17 +70,17 @@ def animate(i):
 		ys[i] = ys[i][-max_vals:];
 	xs = xs[-max_vals:];
 	print(gyros[0]);
-	# imu_values[0].clear();
+	imu_values[0].clear();
 	imu_values[1].clear();
-	# imu_values[0].plot(xs, ys[0],label="accl x")
+	imu_values[0].plot(xs, ys[0],label="accl x")
 	# imu_values[0].plot(xs, ys[1],label="accl y")
 	# imu_values[0].plot(xs, ys[2],label="accl z")
 	# plt.legend(loc="upper left")
 	imu_values[1].plot(xs, ys[3],label="gyro x")
-	# imu_values[1].plot(xs, ys[5],label="gyro y")
+	imu_values[1].plot(xs, ys[5],label="gyro y")
 	# imu_values[1].plot(xs, ys[4],label="gyro z")
 	plt.legend(loc="upper left")
 
 
-ani = animation.FuncAnimation(fig, animate, interval=100)
+ani = animation.FuncAnimation(fig, animate, interval=10)
 plt.show()

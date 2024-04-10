@@ -36,7 +36,6 @@ class Bot:
     def __init__(self):
         # LX16A.initialize("/dev/ttyTHS1")
         LX16A.initialize("/dev/ttyUSB0")
-        self.IMU = imu.Accelerometer()
         hip_pitch = 35 
         hip_offset = -1;
         leg_footing = 0;
@@ -49,7 +48,7 @@ class Bot:
         self.right_knee = Motor(26,73 - leg_footing*2);
         self.my_time = time.time()
         self.prev_time = time.time()
-        self.readIMU()
+        # self.readIMU()
     def home(self):
         self.left_knee.move()
         self.left_thigh.move()
@@ -174,9 +173,11 @@ class Bot:
             self.right_thigh.move(init_right_thigh_last_offset + delta_right_thigh*i)
             self.left_hip.move(init_left_hip_last_offset + delta_left_hip*i)
             self.right_hip.move(init_right_hip_last_offset + delta_right_hip*i)
-    def injest_ik_delay(self,traj_4,time_to_execute = 500):
-        print("injecting traj",traj_4)
-        self.left_knee.moveIn(traj_4[1],time_to_execute)
-        self.left_thigh.moveIn(traj_4[0],time_to_execute)
-        self.right_knee.moveIn(traj_4[3],time_to_execute)
-        self.right_thigh.moveIn(traj_4[2],time_to_execute)
+    def injest_ik_delay(self,traj_6,time_to_execute = 100):
+        print("injecting traj",traj_6)
+        self.left_knee.moveIn(traj_6[1],time_to_execute)
+        self.left_thigh.moveIn(traj_6[0],time_to_execute)
+        self.right_knee.moveIn(traj_6[3],time_to_execute)
+        self.right_thigh.moveIn(traj_6[2],time_to_execute)
+        self.left_hip.moveIn(traj_6[4],time_to_execute)
+        self.right_hip.moveIn(traj_6[5],time_to_execute)
