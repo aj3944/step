@@ -85,7 +85,7 @@ class LX16A:
     _controller = None
 
     @staticmethod
-    def initialize(port: str, timeout: float = 0.02) -> None:
+    def initialize(port: str, timeout: float = 0.05) -> None:
         if LX16A._controller is not None:
             LX16A._controller.reset_input_buffer()
             LX16A._controller.reset_output_buffer()

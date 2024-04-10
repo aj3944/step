@@ -48,11 +48,9 @@ while not stop:
 	time_now = time.time()
 	accs = list(IMU.readAccData())
 	gyros = [x for x in IMU.readGyroData()]
-	stable_x = abs(gyros[0]) < 0.01;
+	stable_x = abs(gyros[0]) <= 0.02;
 	# stable_y = abs(gyros[1]) < 0.02;
 	print(gyros)
-	fall_front = copysign(1,gyros[0])
-	fall_right = copysign(1,gyros[1])
 
 	if stable_x and stable_y:
 		if time_old + time_delta < time_now:
@@ -67,24 +65,24 @@ while not stop:
 		step_l = 0;
 		step_r = 0;
 
-		# if not stable_x:  
+		if not stable_x:  
 			# if gyros[0] < 0:
-		kick_l = 20*50*abs(gyros[0]);
-		kick_r = -20*50*abs(gyros[0]);
+			kick_l = 20
+			kick_r = -20
 			# else:
 			# 	kick_l = 20
 			# 	kick_r = -20
-		# if not stable_y:
-		# 	marignal_toq = copysign(1,gyros[0])
-		# 	# if gyros[1] < 0:
-		# 		roll_y = 15;
-		# 	else:
-		# 		roll_y = -15;
+		if not stable_y:
+			marignal_toq = copysign(1,gyros[0])
+			if gyros[1] < 0:
+				roll_y = 15;
+			else:
+				roll_y = -15;
 		mark_4.injest_ik_delay([roll_y,0,-roll_y,0,kick_l,kick_r],100);
 		# stop = True
-		# time.sleep(.2)
+		time.sleep(.2)
 		mark_4.injest_ik_delay([0,0,0,0,0,0],200);
-		# time.sleep(1)			
+		time.sleep(1)			
 		# if marignal_toq > 0:
 		# 	# Right step 
 		# 	mark_4.injest_ik_delay([roll_y,0,-roll_y,0,kick_l,kick_r],20);
