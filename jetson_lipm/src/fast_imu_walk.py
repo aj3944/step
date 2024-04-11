@@ -13,13 +13,19 @@ mark_4 = Bot()
 mark_4.home()
 time.sleep(3)
 
-sway = 3.5;
+sway = 4;
 
+sh =  0;
+sl = 2;
 
 
 traj_list = [
 	[ 0, 0, 0, 0, sway, sway],
+	[ -sh+sl, sh*2, -sl, 0, sway, sway],
+	[0,0,0,0,0,0],
 	[ 0, 0, 0, 0, -sway, -sway],
+	[ sl, 0, sh-sl, -sh*2, -sway, -sway],
+	[0,0,0,0,0,0],
 ]
 
 
@@ -27,7 +33,7 @@ N = len(traj_list)
 
 traj_index = 0
 
-motor_update_rate = 2 #Hz
+motor_update_rate = 8 #Hz
 
 time_old = time.time();
 time_delta = 1/motor_update_rate;
@@ -77,8 +83,8 @@ while not stop:
 
 
 
-	stable_x = abs(gyros[0]) <= 0.02;
-	stable_y = abs(gyros[1]) <= 0.02;
+	# stable_x = abs(gyros[0]) <= 0.01;
+	# stable_y = abs(gyros[1]) <= 0.02;
 
 	# peak_x = abs(gyros[0]) <= 0.02;
 	# peak_y = abs(gyros[1]) < 0.02;
@@ -89,7 +95,7 @@ while not stop:
 		fx_max = 0;
 		fy_max = 0;
 		if time_old + time_delta < time_now:
-			mark_4.injest_ik_delay(traj_list[traj_index],500);
+			mark_4.injest_ik_delay(traj_list[traj_index],110);
 			time_old = time.time()
 			traj_index += 1;
 			traj_index %= N;
@@ -118,30 +124,39 @@ while not stop:
 			# 	kick_r = -20
 		# if not stable_y:
 				# marignal_toq = copysign(1,gyros[0])
-		step_len = 5;
-		step_height = 15;
+		step_len = 4;
+		step_height = 25;
 
-		if gyros[1] > 0:
-			print("stepping back")
-			if gyros[2] < 0 :
-				print("left leg lift ")
-				left_leg_lift = step_height;
-				step_l = step_len;
-			else:
-				print("right leg lift ")
-				right_leg_lift = step_height;
-				step_r = -step_len;
+		# if gyros[1] > 0:
+		# 	print("stepping back")
+		# 	if gyros[2] < 0 :
+		# 		print("left leg lift ")
+		# 		left_leg_lift = step_height;
+		# 		step_l = step_len;
+		# 	else:
+		# 		print("right leg lift ")
+		# 		right_leg_lift = step_height;
+		# 		step_r = -step_len;
+		# else:
+		# 	print("stepping forward")
+		# 	if gyros[2] > 0 :
+		# 		print("left leg lift ")
+		# 		left_leg_lift = step_height;
+		# 		step_l = -step_len;
+		# 	else:
+		# 		print("right leg lift ")
+		# 		right_leg_lift = step_height;
+		# 		step_r = step_len;
+		if gyros[0] > 0 :
+			print("left leg lift ")
+			left_leg_lift = step_height;
+			step_l = -step_len;
+			step_r = step_len;
 		else:
-			print("stepping forward")
-			if gyros[2] > 0 :
-				print("left leg lift ")
-				left_leg_lift = step_height;
-				step_l = -step_len;
-			else:
-				print("right leg lift ")
-				right_leg_lift = step_height;
-				step_r = step_len;
-
+			print("right leg lift ")
+			right_leg_lift = step_height;
+			step_r = -step_len;
+			step_l = step_len;
 
 		# if gyros[2] > 0 :
 		# # 	roll_y = 15;
