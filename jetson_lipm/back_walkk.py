@@ -49,8 +49,8 @@ class Bot:
         leg_footing = 1
         hip_footing = 3
         # LX16A.initialize("/dev/ttyUSB1")
-        # res = LX16A.initialize("/dev/ttyUSB0")
-        res = LX16A.initialize("/dev/ttyTHS1")
+        res = LX16A.initialize("/dev/ttyUSB0")
+        # res = LX16A.initialize("/dev/ttyTHS1")
         print(res)
         self.left_knee = Motor(11,124 + leg_footing*2);
         self.left_thigh = Motor(12,78 + hip_pitch +        leg_footing);

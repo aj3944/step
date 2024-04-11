@@ -42,7 +42,8 @@ class Bot:
 
     def __init__(self):
 
-        LX16A.initialize("/dev/ttyTHS1")
+        # LX16A.initialize("/dev/ttyTHS1")
+        LX16A.initialize("/dev/ttyUSB0")
         hip_pitch = 35 
         hip_offset = -1;
         leg_footing = 0;
