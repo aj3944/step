@@ -13,18 +13,18 @@ mark_4 = Bot()
 mark_4.home()
 time.sleep(3)
 
-sway = 4;
+sway = 5;
 
-sh =  0;
-sl = 2;
+sh =  35;
+sl = 12;
 
 
 traj_list = [
 	[ 0, 0, 0, 0, sway, sway],
-	[ -sh+sl, sh*2, -sl, 0, sway, sway],
+	[ -sh, sh*2-sl, 0, 0, sway, sway],
 	[0,0,0,0,0,0],
 	[ 0, 0, 0, 0, -sway, -sway],
-	[ sl, 0, sh-sl, -sh*2, -sway, -sway],
+	[ -0, 0, sh, -sh*2+sl, -sway, -sway],
 	[0,0,0,0,0,0],
 ]
 
@@ -33,12 +33,13 @@ N = len(traj_list)
 
 traj_index = 0
 
-motor_update_rate = 8 #Hz
+motor_update_rate = 12.1 #Hz
 
 time_old = time.time();
 time_delta = 1/motor_update_rate;
+time_ms = int(time_delta*1000);
 
-max_vals = 20;
+max_vals = 1;
 
 
 stop = False;
@@ -95,7 +96,7 @@ while not stop:
 		fx_max = 0;
 		fy_max = 0;
 		if time_old + time_delta < time_now:
-			mark_4.injest_ik_delay(traj_list[traj_index],110);
+			mark_4.injest_ik_delay(traj_list[traj_index],time_ms);
 			time_old = time.time()
 			traj_index += 1;
 			traj_index %= N;
