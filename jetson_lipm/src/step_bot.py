@@ -36,16 +36,16 @@ class Bot:
     def __init__(self):
         # LX16A.initialize("/dev/ttyTHS1")
         LX16A.initialize("/dev/ttyUSB0")
-        hip_pitch = 35 
+        hip_pitch = 35
         hip_offset = -1;
-        leg_footing = 0;
+        leg_footing = 3;
         hip_footing = 4
-        self.left_knee = Motor(11,124 + leg_footing*2);
-        self.left_thigh = Motor(12,82 + hip_pitch +        leg_footing);
+        self.left_knee = Motor(11,120 + leg_footing*2);
+        self.left_thigh = Motor(12,80 + hip_pitch +        leg_footing);
         self.left_hip = Motor(13,132 + hip_footing + hip_offset);
         self.right_hip = Motor(24,128 - hip_footing + hip_offset);
         self.right_thigh = Motor(25,123 - hip_pitch -  leg_footing);
-        self.right_knee = Motor(26,73 - leg_footing*2);
+        self.right_knee = Motor(26,80 - leg_footing*2);
         self.my_time = time.time()
         self.prev_time = time.time()
         # self.readIMU()
