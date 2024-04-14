@@ -4,7 +4,11 @@
 import imu 
 from step_bot import Bot
 import time
-from math import sin,cos,atan2,copysign
+from math import sin,cos,atan2,copysign,pi
+from scipy.spatial.transform import Rotation as R
+from quaternion import Transformation
+from mad_ahrs import MadgwickAHRS
+
 
 
 IMU = imu.Accelerometer()
@@ -13,11 +17,11 @@ mark_4 = Bot()
 mark_4.home()
 time.sleep(3)
 
-sway = 0;
+sway = 1;
 
-sh =  14;
+sh =  10;
 sl = 0;
-sb = 0;
+sb = 3;
 
 traj_list = [
 	[ 0, 0, 0, 0, sway, sway],
@@ -33,7 +37,7 @@ N = len(traj_list)
 
 traj_index = 0
 
-motor_update_rate = 14.1 #Hz
+motor_update_rate = 13.1 #Hz
 
 time_old = time.time();
 time_delta = 1/motor_update_rate;
@@ -62,11 +66,52 @@ maxed_y = True;
 fx_max = 0;
 fy_max = 0;
 
+q = [0,0,0];
+q_dot = [];
+v_dot = [];
+v = [0,0,0];
+
+angles = MadgwickAHRS()
+def degrees(v):
+	return [k*180/pi for k in v]
 
 while not stop:
 	time_now = time.time()
 	accs = list(IMU.readAccData())
 	gyros = [x for x in IMU.readGyroData()]
+
+	deltime =  time_now - time_old;
+	angles.update_imu(gyros,accs,deltime)
+
+	q_dot = gyros;
+	q = [ q_dot[k]*deltime + q[k] for k in range(len(q_dot))];
+
+	bot_matrix = R.from_euler('xyz',q).as_matrix();
+	# print(bot_matrix)
+	bT = Transformation()
+	bT.rotate(bot_matrix)
+
+	rpy = angles.quaternion.to_euler_angles()
+	print("rpy: ", degrees(rpy))
+
+
+	acc_in_W = [ 0, 0, 9.8];
+
+	aW = Transformation();
+	aW.locate(*acc_in_W);
+
+	tA =  bT*aW;
+	# print("tA")
+	# print(tA)	
+	corr = tA.T_matrix()[0:3,3]
+	# print(corr)	
+
+	v_dot = [accs[0]-corr[0],accs[1]-corr[1],accs[2] - corr[2]];
+	v = [ v_dot[k]*deltime + v[k] for k in range(len(v_dot))];
+
+	# print("State")
+	# print(q)
+	# print(v)
 
 	# print(gyros)
 	if abs(gyros[0]) > abs(peak_x):

@@ -36,7 +36,7 @@ class Bot:
     def __init__(self):
         # LX16A.initialize("/dev/ttyTHS1")
         LX16A.initialize("/dev/ttyUSB0")
-        hip_pitch = 35
+        hip_pitch = 25
         hip_offset = -1;
         leg_footing = 3;
         hip_footing = 4
@@ -174,7 +174,7 @@ class Bot:
             self.left_hip.move(init_left_hip_last_offset + delta_left_hip*i)
             self.right_hip.move(init_right_hip_last_offset + delta_right_hip*i)
     def injest_ik_delay(self,traj_6,time_to_execute = 100):
-        print("injecting traj",traj_6)
+        # print("injecting traj",traj_6)
         self.left_knee.moveIn(traj_6[1],time_to_execute)
         self.left_thigh.moveIn(traj_6[0],time_to_execute)
         self.right_knee.moveIn(traj_6[3],time_to_execute)
