@@ -17,11 +17,11 @@ mark_4 = Bot()
 mark_4.home()
 time.sleep(3)
 
-sway = 1;
+sway = 2;
 
-sh =  10;
-sl = 0;
-sb = 3;
+sh =  18;
+sl = 2;
+sb = 0;
 
 traj_list = [
 	[ 0, 0, 0, 0, sway, sway],
@@ -37,7 +37,7 @@ N = len(traj_list)
 
 traj_index = 0
 
-motor_update_rate = 13.1 #Hz
+motor_update_rate = 11.1 #Hz
 
 time_old = time.time();
 time_delta = 1/motor_update_rate;
@@ -81,18 +81,21 @@ while not stop:
 	gyros = [x for x in IMU.readGyroData()]
 
 	deltime =  time_now - time_old;
-	angles.update_imu(gyros,accs,deltime)
+	angles.update_imu(gyros,accs,0)
 
 	q_dot = gyros;
 	q = [ q_dot[k]*deltime + q[k] for k in range(len(q_dot))];
 
-	bot_matrix = R.from_euler('xyz',q).as_matrix();
+
+	rpy = angles.quaternion.to_euler_angles()
+	# print("rpy: ", degrees(rpy))
+
+
+	bot_matrix = R.from_euler('xyz',rpy).as_matrix();
 	# print(bot_matrix)
 	bT = Transformation()
 	bT.rotate(bot_matrix)
 
-	rpy = angles.quaternion.to_euler_angles()
-	print("rpy: ", degrees(rpy))
 
 
 	acc_in_W = [ 0, 0, 9.8];
@@ -109,23 +112,27 @@ while not stop:
 	v_dot = [accs[0]-corr[0],accs[1]-corr[1],accs[2] - corr[2]];
 	v = [ v_dot[k]*deltime + v[k] for k in range(len(v_dot))];
 
-	# print("State")
+	print("State")
 	# print(q)
-	# print(v)
+	print(v)
+
+
+	icp_l = v[0]*85/8*0;
+	icp_w = v[1]*73/8*0;
 
 	# print(gyros)
-	if abs(gyros[0]) > abs(peak_x):
-		peak_x = gyros[0]
-		maxed_x = False;
-		fx_max = accs[0]
-	else:
-		maxed_x = True;
-	if abs(gyros[1]) > abs(peak_y):
-		peak_y = gyros[1]
-		maxed_y = False;
-		fy_max = accs[1]
-	else:
-		maxed_y = True;
+	# if abs(gyros[0]) > abs(peak_x):
+	# 	peak_x = gyros[0]
+	# 	maxed_x = False;
+	# 	fx_max = accs[0]
+	# else:
+	# 	maxed_x = True;
+	# if abs(gyros[1]) > abs(peak_y):
+	# 	peak_y = gyros[1]
+	# 	maxed_y = False;
+	# 	fy_max = accs[1]
+	# else:
+	# 	maxed_y = True;
 
 
 
@@ -141,7 +148,14 @@ while not stop:
 		fx_max = 0;
 		fy_max = 0;
 		if time_old + time_delta < time_now:
-			mark_4.injest_ik_delay(traj_list[traj_index],time_ms);
+			pct = traj_list[traj_index];
+			_corr_traj = pct
+			if traj_index == 1:
+				_corr_traj = [pct[0] + icp_l,pct[1],pct[2],pct[3],pct[4] + icp_w,pct[5]]
+			if traj_index == 4:
+				_corr_traj = [pct[0],pct[1],pct[2] - icp_l,pct[3],pct[4],pct[5] - icp_w]
+
+			mark_4.injest_ik_delay(_corr_traj,time_ms);
 			time_old = time.time()
 			traj_index += 1;
 			traj_index %= N;
