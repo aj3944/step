@@ -7,6 +7,8 @@ import numpy as np
 import time
 
 
+import imu 
+
 
 
 from sklearn.preprocessing import normalize
@@ -189,22 +191,60 @@ class Room(object):
         glutMainLoopEvent()
 
 
-_CELESTIAL_SPHERE_ = Thing(glutWireSphere,(100,20,20))
+# _CELESTIAL_SPHERE_ = Thing(glutWireSphere,(100,20,20))
 
 SCENE_1 = Scene()
 
-SCENE_1.add_object(_CELESTIAL_SPHERE_)
+# SCENE_1.add_object(_CELESTIAL_SPHERE_)
 
 SCENE_1.fix_position([0,0,0])
 
-SCENE_TWO_ADJACENT_CUBES = Scene()
 
-SCENE_TWO_ADJACENT_CUBES.add_scene(SCENE_1,1,1,1)
+def make_goal_axis():
+    glPushMatrix()
+    glColor3f(1.0, 0., 0.);
+    glScalef(10,1,1)
+    glutSolidCube(10)
+    glPopMatrix()
 
-R = Room(SCENE_TWO_ADJACENT_CUBES)
+    glPushMatrix()        
+    glColor3f(0., 1.0,0.);
+    glScalef(1,10,1)
+    glutSolidCube(10)
+    glPopMatrix()
 
+    glPushMatrix()
+    glColor3f(0., 0., 1.0);
+    glScalef(1,1,10)
+    glutSolidCube(10)
+    glPopMatrix()  
+    
+
+    glColor3f(1., 1., 1.);
+
+_STATE_ = Thing(make_goal_axis,())
+SCENE_1.add_object(_STATE_)
+
+
+
+SCENE_MAIN = Scene()
+
+SCENE_MAIN.add_scene(SCENE_1,1,1,1)
+
+R = Room(SCENE_MAIN)
+
+
+# from_MATRIX
+IMU = imu.Accelerometer()
 
 while 21:
+    accs = list(IMU.readAccData())
+    gyros = list(IMU.readGyroData())
+    gyro_matrix = R.from_euler('xyz',gyros).as_matrix();
+
+    _STATE_.rotation = qt.from_MATRIX(gyro_matrix);
+    
+
     R.update()
 
 # #     for i in range(len(joint_values)):
