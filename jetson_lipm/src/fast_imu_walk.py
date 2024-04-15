@@ -18,16 +18,21 @@ mark_4.home()
 time.sleep(3)
 
 sway = 2;
-
-sh =  18;
-sl = 2;
+# sway = 0;
+# 
+sh =  17;
+sl = 4;
 sb = 0;
 
+tilt = 0;
+lean = 0;
+
+
 traj_list = [
-	[ 0, 0, 0, 0, sway, sway],
+	[ 0 + tilt + lean , 0, 0 + tilt  - lean, 0, sway, sway],
 	[ -sh + sb, sh*2-sl, sb, 0, sway, sway],
 	[0,0,0,0,0,0],
-	[ 0, 0, 0, 0, -sway, -sway],
+	[ 0 - tilt - lean , 0, 0 - tilt + lean , 0, -sway, -sway],
 	[ -sb, 0, sh - sb, -sh*2+sl, -sway, -sway],
 	[0,0,0,0,0,0],
 ]
@@ -37,11 +42,11 @@ N = len(traj_list)
 
 traj_index = 0
 
-motor_update_rate = 11.1 #Hz
+motor_update_rate = 12.1 #Hz
 
 time_old = time.time();
 time_delta = 1/motor_update_rate;
-time_ms = int(time_delta*1000);
+time_ms = int(time_delta*500);
 
 max_vals = 1;
 
@@ -107,40 +112,39 @@ while not stop:
 	# print("tA")
 	# print(tA)	
 	corr = tA.T_matrix()[0:3,3]
-	# print(corr)	
+	# print(gyros, end ="\t")	
+	# print(accs)	
 
 	v_dot = [accs[0]-corr[0],accs[1]-corr[1],accs[2] - corr[2]];
 	v = [ v_dot[k]*deltime + v[k] for k in range(len(v_dot))];
+	d_deg = degrees(q)
+	# print("State")
+	print(d_deg)
+	# print(v)
 
-	print("State")
-	# print(q)
-	print(v)
 
-
-	icp_l = v[0]*85/8*0;
-	icp_w = v[1]*73/8*0;
+	icp_l = v[0]*25/8*0;
+	icp_w = v[1]*13/8*0;
 
 	# print(gyros)
-	# if abs(gyros[0]) > abs(peak_x):
-	# 	peak_x = gyros[0]
-	# 	maxed_x = False;
-	# 	fx_max = accs[0]
-	# else:
-	# 	maxed_x = True;
-	# if abs(gyros[1]) > abs(peak_y):
-	# 	peak_y = gyros[1]
-	# 	maxed_y = False;
-	# 	fy_max = accs[1]
-	# else:
-	# 	maxed_y = True;
+	if abs(gyros[0]) > abs(peak_x):
+		peak_x = gyros[0]
+		maxed_x = False;
+		fx_max = accs[0]
+	else:
+		maxed_x = True;
+	if abs(gyros[1]) > abs(peak_y):
+		peak_y = gyros[1]
+		maxed_y = False;
+		fy_max = accs[1]
+	else:
+		maxed_y = True;
 
 
 
-	# stable_x = abs(gyros[0]) <= 0.01;
-	# stable_y = abs(gyros[1]) <= 0.02;
+	stable_x = abs(gyros[0]) <= 0.03;
+	stable_y = abs(gyros[1]) <= 0.04;
 
-	# peak_x = abs(gyros[0]) <= 0.02;
-	# peak_y = abs(gyros[1]) < 0.02;
 
 	if stable_x and stable_y:
 		peak_x = 0;
@@ -184,9 +188,14 @@ while not stop:
 			# 	kick_r = -20
 		# if not stable_y:
 				# marignal_toq = copysign(1,gyros[0])
-		step_len = 4;
-		step_height = 25;
+		step_len = 1;
+		step_height = 5;
+		lean_amount = -110;
 
+		if gyros[1] > 0:
+			leanl  = lean_amount*peak_y;
+		else:
+			leanl =  lean_amount*peak_y;
 		# if gyros[1] > 0:
 		# 	print("stepping back")
 		# 	if gyros[2] < 0 :
@@ -207,16 +216,16 @@ while not stop:
 		# 		print("right leg lift ")
 		# 		right_leg_lift = step_height;
 		# 		step_r = step_len;
-		if gyros[0] > 0 :
-			print("left leg lift ")
-			left_leg_lift = step_height;
-			step_l = -step_len;
-			step_r = step_len;
-		else:
-			print("right leg lift ")
-			right_leg_lift = step_height;
-			step_r = -step_len;
-			step_l = step_len;
+		# if gyros[0] > 0 :
+		# 	print("left leg lift ")
+		# 	left_leg_lift = step_height;
+		# 	step_l = -step_len;
+		# 	step_r = step_len;
+		# else:
+		# 	print("right leg lift ")
+		# 	right_leg_lift = step_height;
+		# 	step_r = -step_len;
+		# 	step_l = step_len;
 
 		# if gyros[2] > 0 :
 		# # 	roll_y = 15;
@@ -238,15 +247,15 @@ while not stop:
 		# 	print("step fwd")
 
 
-		mark_4.injest_ik_delay([step_l - left_leg_lift,2*left_leg_lift,- step_r + right_leg_lift,-2*right_leg_lift,kick_l,kick_r],50);
+		mark_4.injest_ik_delay([step_l - left_leg_lift + leanl,2*left_leg_lift,- step_r + right_leg_lift - leanl,-2*right_leg_lift,kick_l,kick_r],50);
 		# stop = True
-		time.sleep(.2)
-		# mark_4.injest_ik_delay([0 ,0,-0 - 0,0,kick_l,kick_r],200);
-		# time.sleep(1)
+		# time.sleep(.1)
+		# # mark_4.injest_ik_delay([0 ,0,-0 - 0,0,kick_l,kick_r],200);
+		# # time.sleep(1)
 
 
-		mark_4.injest_ik_delay([0,0,0,0,0,0],200);
-		time.sleep(.1)			
+		# mark_4.injest_ik_delay([0,0,0,0,0,0],200);
+		# time.sleep(.3)			
 		# if marignal_toq > 0:
 		# 	# Right step 
 		# 	mark_4.injest_ik_delay([roll_y,0,-roll_y,0,kick_l,kick_r],20);
