@@ -11,8 +11,8 @@ import time
 
 from sklearn.preprocessing import normalize
 
-from jax import grad,jacobian
-from pyassimp import load
+# from jax import grad,jacobian
+# from pyassimp import load
 
 from quaternion import Quaternion as qt
 from quaternion import Haal
