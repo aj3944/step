@@ -3,6 +3,23 @@ from lx16a import *
 import time
 import imu 
 
+def avg(matrix):
+    vals = [];
+    n = len(matrix);
+    if n <= 0:
+        return matrix
+    m = len(matrix[0]);
+
+    for k in range(m):
+        vals.append(0)
+    for v in matrix:
+        for k in range(m):
+            vals[k] += v[k]
+    for k in range(m):
+        vals[k] /= n
+    return vals
+
+
 class Motor:
     center = 0
     moved_last_offset = 0;
@@ -33,6 +50,14 @@ class Bot:
     my_time = 0
     prev_time = 0
     Q_degress = [0,0,0,0,0,0]
+    alpha = 0
+    beta = 0
+    orientation = [ 0, 0, 0 ]
+    abs_orientation = [ 0, 0, 0 ]
+    base_orientation = [ 0, 0, 0 ]
+    acc_past = [[0,0,0]]
+    acc_max = 10;
+    acc_avg = [0,0,0]
     def __init__(self):
         # LX16A.initialize("/dev/ttyTHS1")
         LX16A.initialize("/dev/ttyUSB0")
@@ -40,6 +65,9 @@ class Bot:
         hip_offset = -1;
         leg_footing = 4;
         hip_footing = 5;
+        self.frame = 0;
+        self.reset_clock = 100;
+        # self.alpha
         self.left_knee = Motor(11,112 + leg_footing*2);
         self.left_thigh = Motor(12,84 + hip_pitch +        leg_footing);
         self.left_hip = Motor(13,130 + hip_footing + hip_offset);
@@ -48,6 +76,7 @@ class Bot:
         self.right_knee = Motor(26,80 - leg_footing*2);
         self.my_time = time.time()
         self.prev_time = time.time()
+        self.IMU = imu.Accelerometer();
         # self.readIMU()
     def home(self):
         self.left_knee.move()
@@ -67,10 +96,25 @@ class Bot:
 
         self.acc = list(self.IMU.readAccData())
         self.gyro = list(self.IMU.readGyroData())
-        tx = atan2(self.acc[0],self.acc[2])
-        ty = atan2(self.acc[1],self.acc[2])
-        self.atilts = [tx,ty]
+
+        self.acc_past.append(self.acc)
+        self.acc_past = self.acc_past[-self.acc_max:]
+
+        self.acc_avg = avg(self.acc_past)
+
+        self.alpha = atan2(self.acc_avg[0],self.acc_avg[2])
+        self.beta = -atan2(self.acc_avg[1],self.acc_avg[2])
+        self.atilts = [self.alpha,self.beta]
         self.gtilts = [self.gtilts[0] + delta_t*self.gyro[0],self.gtilts[1] + delta_t*self.gyro[1]]
+        self.orientation = [self.orientation[l] + (self.gyro[l])*delta_t for l in range(len(self.gyro))];
+
+        self.frame += 1;
+        if self.frame % self.reset_clock == 0:
+            self.orientation = [ self.beta , self.alpha, 0 ]
+
+        self.abs_orientation = [ self.orientation[l] -self.base_orientation[l] for l in range(3) ]
+    def finish_calibration(self):
+        self.base_orientation = self.orientation
     def print_state(self):
         print(self.atilts,self.gtilts)
     def raise_foot(self,foot ,height):
@@ -175,9 +219,9 @@ class Bot:
             self.right_hip.move(init_right_hip_last_offset + delta_right_hip*i)
     def injest_ik_delay(self,traj_6,time_to_execute = 100):
         # print("injecting traj",traj_6)
-        self.left_knee.moveIn(traj_6[1],time_to_execute)
         self.left_thigh.moveIn(traj_6[0],time_to_execute)
-        self.right_knee.moveIn(traj_6[3],time_to_execute)
+        self.left_knee.moveIn(traj_6[1],time_to_execute)
         self.right_thigh.moveIn(traj_6[2],time_to_execute)
+        self.right_knee.moveIn(traj_6[3],time_to_execute)
         self.left_hip.moveIn(traj_6[4],time_to_execute)
         self.right_hip.moveIn(traj_6[5],time_to_execute)

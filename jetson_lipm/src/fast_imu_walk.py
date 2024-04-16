@@ -17,11 +17,13 @@ mark_4 = Bot()
 mark_4.home()
 time.sleep(3)
 
-sway = 2;
-# sway = 0;
+# sway = 2;
+sway = 0;
 # 
-sh =  17;
-sl = 4;
+# sh =  17;
+sh = 0
+# sl = 4;
+sl = 0
 sb = 0;
 
 tilt = 0;
@@ -76,27 +78,45 @@ q_dot = [];
 v_dot = [];
 v = [0,0,0];
 
-angles = MadgwickAHRS()
+# angles = MadgwickAHRS()
 def degrees(v):
 	return [k*180/pi for k in v]
 
+calibration = 1000;
+
+while calibration:
+	print("calibration")
+	calibration -= 1;
+	mark_4.readIMU()
+
+
+
+mark_4.finish_calibration();
+viability_y = 3;
+viability_x = 7;
+
 while not stop:
 	time_now = time.time()
-	accs = list(IMU.readAccData())
-	gyros = [x for x in IMU.readGyroData()]
+	# accs = list(IMU.readAccData())
+	# gyros = [x for x in IMU.readGyroData()]
 
 	deltime =  time_now - time_old;
-	angles.update_imu(gyros,accs,0)
+	# angles.update_imu(gyros,accs,0)
 
-	q_dot = gyros;
-	q = [ q_dot[k]*deltime + q[k] for k in range(len(q_dot))];
-
-
-	rpy = angles.quaternion.to_euler_angles()
-	# print("rpy: ", degrees(rpy))
+	# q_dot = gyros;
+	# q = [ q_dot[k]*deltime + q[k] for k in range(len(q_dot))];
 
 
-	bot_matrix = R.from_euler('xyz',rpy).as_matrix();
+	# rpy = angles.quaternion.to_euler_angles()
+		# print("rpy: ", degrees(rpy))
+
+	mark_4.readIMU();
+
+	accs = mark_4.acc;
+	gyros = mark_4.gyro;
+
+	orie = mark_4.abs_orientation;
+	bot_matrix = R.from_euler('xyz',orie).as_matrix();
 	# print(bot_matrix)
 	bT = Transformation()
 	bT.rotate(bot_matrix)
@@ -117,7 +137,7 @@ while not stop:
 
 	v_dot = [accs[0]-corr[0],accs[1]-corr[1],accs[2] - corr[2]];
 	v = [ v_dot[k]*deltime + v[k] for k in range(len(v_dot))];
-	d_deg = degrees(q)
+	d_deg = degrees(orie)
 	# print("State")
 	print(d_deg)
 	# print(v)
@@ -142,8 +162,11 @@ while not stop:
 
 
 
-	stable_x = abs(gyros[0]) <= 0.03;
-	stable_y = abs(gyros[1]) <= 0.04;
+	# stable_x = abs(gyros[0]) <= 0.02;
+	# stable_y = abs(gyros[1]) <= 0.02;
+
+	stable_x = abs(d_deg[0]) <= viability_x;
+	stable_y = abs(d_deg[1]) <= viability_y;
 
 
 	if stable_x and stable_y:
@@ -163,9 +186,14 @@ while not stop:
 			time_old = time.time()
 			traj_index += 1;
 			traj_index %= N;
+					# time.sleep(1)
+		else:
+			time.sleep(.001)
+
 	else:
 		if maxed_x and maxed_y:
 			print("FALL START",end='\t');
+			print(mark_4.frame,end='\t');
 			print(gyros,end='\t');
 			print(accs);
 			# mark_4.injest_ik_delay([0,0,0,0,0,0],20);
@@ -190,12 +218,12 @@ while not stop:
 				# marignal_toq = copysign(1,gyros[0])
 		step_len = 1;
 		step_height = 5;
-		lean_amount = -110;
+		lean_amount = 10;
 
 		if gyros[1] > 0:
-			leanl  = lean_amount*peak_y;
+			leanl  = lean_amount;
 		else:
-			leanl =  lean_amount*peak_y;
+			leanl =  lean_amount;
 		# if gyros[1] > 0:
 		# 	print("stepping back")
 		# 	if gyros[2] < 0 :
@@ -249,13 +277,13 @@ while not stop:
 
 		mark_4.injest_ik_delay([step_l - left_leg_lift + leanl,2*left_leg_lift,- step_r + right_leg_lift - leanl,-2*right_leg_lift,kick_l,kick_r],50);
 		# stop = True
-		# time.sleep(.1)
+		time.sleep(.1)
 		# # mark_4.injest_ik_delay([0 ,0,-0 - 0,0,kick_l,kick_r],200);
 		# # time.sleep(1)
 
 
-		# mark_4.injest_ik_delay([0,0,0,0,0,0],200);
-		# time.sleep(.3)			
+		mark_4.injest_ik_delay([0,0,0,0,0,0],200);
+		time.sleep(.5)			
 		# if marignal_toq > 0:
 		# 	# Right step 
 		# 	mark_4.injest_ik_delay([roll_y,0,-roll_y,0,kick_l,kick_r],20);

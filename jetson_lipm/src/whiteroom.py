@@ -12,6 +12,7 @@ import imu
 
 
 from sklearn.preprocessing import normalize
+from scipy.spatial.transform import Rotation as R
 
 # from jax import grad,jacobian
 # from pyassimp import load
@@ -200,30 +201,32 @@ SCENE_1 = Scene()
 SCENE_1.fix_position([0,0,0])
 
 
-def make_goal_axis():
+def make_goal_axis(a,b):
     glPushMatrix()
     glColor3f(1.0, 0., 0.);
-    glScalef(10,1,1)
+    glScalef(b,a,a)
     glutSolidCube(10)
     glPopMatrix()
 
     glPushMatrix()        
     glColor3f(0., 1.0,0.);
-    glScalef(1,10,1)
+    glScalef(a,b,a)
     glutSolidCube(10)
     glPopMatrix()
 
     glPushMatrix()
     glColor3f(0., 0., 1.0);
-    glScalef(1,1,10)
+    glScalef(a,a,b)
     glutSolidCube(10)
     glPopMatrix()  
     
 
     glColor3f(1., 1., 1.);
 
-_STATE_ = Thing(make_goal_axis,())
+_STATE_ = Thing(make_goal_axis,(2,10))
+_STATE_ACC = Thing(make_goal_axis,(1,32))
 SCENE_1.add_object(_STATE_)
+SCENE_1.add_object(_STATE_ACC)
 
 
 
@@ -231,21 +234,111 @@ SCENE_MAIN = Scene()
 
 SCENE_MAIN.add_scene(SCENE_1,1,1,1)
 
-R = Room(SCENE_MAIN)
+R_viz = Room(SCENE_MAIN)
 
 
 # from_MATRIX
 IMU = imu.Accelerometer()
+g_int = [0,0,0]
+g_drift = [0,0,0]
 
+a_avg = [[0,0,0]];
+a_len = 25;
+
+
+time_old = time.time()
+def degrees(v):
+    return [k*180/math.pi for k in v]
+
+
+cal_steps = 100;
+done_steps = 0;
+
+print("calibration")
+while done_steps <= cal_steps:
+    done_steps += 1;
+    time_now = time.time()
+    accs = list(IMU.readAccData());
+    gyros = list(IMU.readGyroData());
+
+    # # a_avg.pop(0)
+    # a_avg.append(accs)
+    # # if len(a_avg) > a_len:
+    # a_avg = a_avg[:-a_len]
+
+
+    time_delta = time_now - time_old;
+    g_drift = [g_drift[l] + gyros[l]*time_delta for l in range(len(gyros))];
+    time_old = time.time()
+
+g_drift = [g/cal_steps for g in g_drift]
+print("done calibration")
+print(g_drift)
+
+
+print("staring ICP walk")
+
+
+frame = 0;
+reset_clock = 100;
+alpha = 0
+beta = 0
+
+def avg(matrix):
+    vals = [];
+    n = len(matrix);
+    if n <= 0:
+        return matrix
+    m = len(matrix[0]);
+
+    for k in range(m):
+        vals.append(0)
+    for v in matrix:
+        for k in range(m):
+            vals[k] += v[k]
+    for k in range(m):
+        vals[k] /= n
+    return vals
 while 21:
-    accs = list(IMU.readAccData())
-    gyros = list(IMU.readGyroData())
-    gyro_matrix = R.from_euler('xyz',gyros).as_matrix();
+    frame += 1;
 
-    _STATE_.rotation = qt.from_MATRIX(gyro_matrix);
+    time_now = time.time()
+    accs = list(IMU.readAccData());
+    gyros = list(IMU.readGyroData());
+
+    time_delta = (time_now - time_old)*25;
+    g_int = [g_int[l] + (gyros[l] - g_drift[l])*time_delta for l in range(len(gyros))];
+    time_old = time.time()
+
+    # a_avg.pop(0)
+    a_avg.append(accs)
+    # if len(a_avg) > a_len:
+    a_avg = a_avg[-a_len:]
+    
+    accs_av = avg(a_avg);
+
+    alpha = math.atan2(accs_av[0],accs_av[2])
+    beta = -math.atan2(accs_av[1],accs_av[2])
+
+
+    if frame % reset_clock == 0:
+        g_int = [ beta , alpha, 0 ]
+
+
+    # g_int = degrees()
+    # print(time_delta,(degrees(g_int)))
+    gm = R.from_euler('zyx',g_int).as_quat();
+    am = R.from_euler('xzy',[ 0 ,beta ,alpha]).as_quat();
+    # gm = R.from_euler('zyx',degrees(g_int)).as_quat();
+
+    # _STATE_.haal.rotation_Q = qt.from_value([gm[3],gm[0],gm[1],gm[2]]);
+    _STATE_.haal.rotation_Q = qt.from_value(gm);
+    _STATE_ACC.haal.rotation_Q = qt.from_value(am);
+    # _STATE_.haal.rotation_Q = qt.from_MATRIX(gm);
+    # _STATE_.haal.rotation_Q = qt.from_value(gm);
     
 
-    R.update()
+    R_viz.update()
 
 # #     for i in range(len(joint_values)):
 # #         joint_values[i] += thread_len1*10
