@@ -9,7 +9,29 @@ from scipy.spatial.transform import Rotation as R
 from quaternion import Transformation
 from mad_ahrs import MadgwickAHRS
 
+from quaternion import Quaternion as qt
+from quaternion import Haal
 
+
+from bhram import Thing,Scene,bhram_vertex_shader,bhram_fragment_shader
+from whiteroom import Room,make_goal_axis
+
+
+SCENE_1 = Scene()
+SCENE_1.fix_position([0,0,0])
+
+
+_STATE_ = Thing(make_goal_axis,(2,10))
+_STATE_ACC = Thing(make_goal_axis,(1,32))
+SCENE_1.add_object(_STATE_)
+SCENE_1.add_object(_STATE_ACC)
+
+
+SCENE_MAIN = Scene()
+
+SCENE_MAIN.add_scene(SCENE_1,1,1,1)
+
+R_viz = Room(SCENE_MAIN)
 
 IMU = imu.Accelerometer()
 
@@ -17,12 +39,14 @@ mark_4 = Bot()
 mark_4.home()
 time.sleep(3)
 
-# sway = 2;
-sway = 0;
+# sway = 0;
+sway = 3;
 # 
 # sh =  17;
-sh = 0
-# sl = 4;
+# sh = 14
+# sh = 17
+sh = 5
+# sl = -4;
 sl = 0
 sb = 0;
 
@@ -44,7 +68,8 @@ N = len(traj_list)
 
 traj_index = 0
 
-motor_update_rate = 12.1 #Hz
+# motor_update_rate = 8.5 #Hz
+motor_update_rate = 12.5 #Hz
 
 time_old = time.time();
 time_delta = 1/motor_update_rate;
@@ -77,6 +102,33 @@ q = [0,0,0];
 q_dot = [];
 v_dot = [];
 v = [0,0,0];
+
+
+fall_x = 0;
+fall_y = 0;
+
+
+def make_fall_vector(a,b):
+    glPushMatrix()
+    glColor3f(1.0, 0., 0.);
+    glScalef(b,a,a)
+    glutSolidCube(10)
+    glPopMatrix()
+
+    glPushMatrix()        
+    glColor3f(0., 1.0,0.);
+    glScalef(a,b,a)
+    glutSolidCube(10)
+    glPopMatrix()
+
+    glPushMatrix()
+    glColor3f(0., 0., 1.0);
+    glScalef(a,a,b)
+    glutSolidCube(10)
+    glPopMatrix()  
+    
+
+    glColor3f(1., 1., 1.);
 
 # angles = MadgwickAHRS()
 def degrees(v):
@@ -160,13 +212,20 @@ while not stop:
 	else:
 		maxed_y = True;
 
+	gm = R.from_euler('zyx',mark_4.orientation).as_quat();
+	am = R.from_euler('xzy',[ 0 ,mark_4.beta ,mark_4.alpha]).as_quat();
+
+	_STATE_.haal.rotation_Q = qt.from_value(gm);
+	_STATE_ACC.haal.rotation_Q = qt.from_value(am);
+
+	R_viz.update()
 
 
 	# stable_x = abs(gyros[0]) <= 0.02;
 	# stable_y = abs(gyros[1]) <= 0.02;
 
-	stable_x = abs(d_deg[0]) <= viability_x;
-	stable_y = abs(d_deg[1]) <= viability_y;
+	stable_x = abs(d_deg[0]) <= viability_x and  abs(gyros[0]) <= 0.02;
+	stable_y = abs(d_deg[1]) <= viability_y and abs(gyros[1]) <= 0.02;
 
 
 	if stable_x and stable_y:
@@ -275,15 +334,15 @@ while not stop:
 		# 	print("step fwd")
 
 
-		mark_4.injest_ik_delay([step_l - left_leg_lift + leanl,2*left_leg_lift,- step_r + right_leg_lift - leanl,-2*right_leg_lift,kick_l,kick_r],50);
+		# mark_4.injest_ik_delay([step_l - left_leg_lift + leanl,2*left_leg_lift,- step_r + right_leg_lift - leanl,-2*right_leg_lift,kick_l,kick_r],50);
 		# stop = True
-		time.sleep(.1)
+		# time.sleep(.1)
 		# # mark_4.injest_ik_delay([0 ,0,-0 - 0,0,kick_l,kick_r],200);
 		# # time.sleep(1)
 
 
-		mark_4.injest_ik_delay([0,0,0,0,0,0],200);
-		time.sleep(.5)			
+		# mark_4.injest_ik_delay([0,0,0,0,0,0],200);
+		# time.sleep(.5)			
 		# if marignal_toq > 0:
 		# 	# Right step 
 		# 	mark_4.injest_ik_delay([roll_y,0,-roll_y,0,kick_l,kick_r],20);

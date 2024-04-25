@@ -56,19 +56,19 @@ class Bot:
     abs_orientation = [ 0, 0, 0 ]
     base_orientation = [ 0, 0, 0 ]
     acc_past = [[0,0,0]]
-    acc_max = 10;
+    acc_max = 20;
     acc_avg = [0,0,0]
     def __init__(self):
         # LX16A.initialize("/dev/ttyTHS1")
         LX16A.initialize("/dev/ttyUSB0")
         hip_pitch = 25;
         hip_offset = -1;
-        leg_footing = 4;
+        leg_footing = 2;
         hip_footing = 5;
         self.frame = 0;
-        self.reset_clock = 100;
+        self.reset_clock = 25;
         # self.alpha
-        self.left_knee = Motor(11,112 + leg_footing*2);
+        self.left_knee = Motor(11,114 + leg_footing*2);
         self.left_thigh = Motor(12,84 + hip_pitch +        leg_footing);
         self.left_hip = Motor(13,130 + hip_footing + hip_offset);
         self.right_hip = Motor(24,128 - hip_footing + hip_offset);
@@ -92,7 +92,7 @@ class Bot:
         else:
             prev_time = self.int_time
         self.int_time = time.time()
-        delta_t = self.int_time - prev_time;
+        delta_t = (self.int_time - prev_time)*25;
 
         self.acc = list(self.IMU.readAccData())
         self.gyro = list(self.IMU.readGyroData())
