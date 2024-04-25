@@ -4,7 +4,7 @@ import math
 import imu 
 from step_bot import Bot
 import time
-from math import sin,cos,atan2,copysign,pi
+from math import sin,cos,atan2,copysign,pi,sqrt
 from scipy.spatial.transform import Rotation as R
 from quaternion import Transformation
 from mad_ahrs import MadgwickAHRS
@@ -16,6 +16,9 @@ from quaternion import Haal
 from bhram import Thing,Scene,bhram_vertex_shader,bhram_fragment_shader
 from whiteroom import Room,make_goal_axis
 
+from OpenGL.GLUT import *
+from OpenGL.GLU import *
+from OpenGL.GL import *
 
 SCENE_1 = Scene()
 SCENE_1.fix_position([0,0,0])
@@ -27,11 +30,6 @@ SCENE_1.add_object(_STATE_)
 SCENE_1.add_object(_STATE_ACC)
 
 
-SCENE_MAIN = Scene()
-
-SCENE_MAIN.add_scene(SCENE_1,1,1,1)
-
-R_viz = Room(SCENE_MAIN)
 
 IMU = imu.Accelerometer()
 
@@ -39,13 +37,14 @@ mark_4 = Bot()
 mark_4.home()
 time.sleep(3)
 
-# sway = 0;
-sway = 3;
+sway = 0;
+# sway = 3;
 # 
 # sh =  17;
 # sh = 14
 # sh = 17
-sh = 5
+sh = 0
+# sh = 5
 # sl = -4;
 sl = 0
 sb = 0;
@@ -109,27 +108,30 @@ fall_y = 0;
 
 
 def make_fall_vector(a,b):
-    glPushMatrix()
-    glColor3f(1.0, 0., 0.);
-    glScalef(b,a,a)
-    glutSolidCube(10)
-    glPopMatrix()
+	global fall_x,fall_y
+	ang = atan2(fall_x,fall_y)*180/3.14159;
+	mag = sqrt(fall_x*fall_x + fall_y*fall_y)*100;
+	glPushMatrix()
+	glColor3f(1.0, 1., 1.);
+	glRotatef(ang,0,0,1);
+	glTranslatef(b*a*mag/2,0,0);
+	glScalef(a*mag,1,1);
+	glutSolidCube(b)
+	glPopMatrix()
 
-    glPushMatrix()        
-    glColor3f(0., 1.0,0.);
-    glScalef(a,b,a)
-    glutSolidCube(10)
-    glPopMatrix()
+_IMPULSE_ = Thing(make_fall_vector,(10,20))
+SCENE_1.add_object(_IMPULSE_)
 
-    glPushMatrix()
-    glColor3f(0., 0., 1.0);
-    glScalef(a,a,b)
-    glutSolidCube(10)
-    glPopMatrix()  
-    
+_ROBOT_ = Thing(mark_4.draw,())
+SCENE_1.add_object(_ROBOT_)
 
-    glColor3f(1., 1., 1.);
 
+
+SCENE_MAIN = Scene()
+
+SCENE_MAIN.add_scene(SCENE_1,1,1,1)
+
+R_viz = Room(SCENE_MAIN)
 # angles = MadgwickAHRS()
 def degrees(v):
 	return [k*180/pi for k in v]
@@ -149,6 +151,7 @@ viability_y = 3;
 viability_z = 0.03;
 
 while not stop:
+	# global fall_x,fall_y
 	time_now = time.time()
 	# accs = list(IMU.readAccData())
 	# gyros = [x for x in IMU.readGyroData()]
@@ -199,8 +202,10 @@ while not stop:
 	icp_l = v[0]*25/8*0;
 	icp_w = v[1]*13/8*0;
 
+	fall_x = gyros[0];
+	fall_y = gyros[1];
 	# print(gyros)
-	if abs(gyros[0]) > abs(peak_x):
+	if abs(fall_x) > abs(peak_x):
 		peak_x = gyros[0]
 		maxed_x = False;
 		fx_max = accs[0]
@@ -212,6 +217,7 @@ while not stop:
 		fy_max = accs[1]
 	else:
 		maxed_y = True;
+		# fall_y = maxed_y;
 
 	gm = R.from_euler('zyx',mark_4.orientation).as_quat();
 	am = R.from_euler('xzy',[ 0 ,mark_4.beta ,mark_4.alpha]).as_quat();
@@ -220,6 +226,7 @@ while not stop:
 	_STATE_ACC.haal.rotation_Q = qt.from_value(am);
 
 	R_viz.update()
+	# time.sleep(.1)
 
 
 	

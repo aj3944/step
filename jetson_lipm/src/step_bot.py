@@ -2,6 +2,54 @@ from math import sin, cos,pi,atan2
 from lx16a import *
 import time
 import imu 
+from pyassimp import load
+
+
+from OpenGL.GLUT import *
+from OpenGL.GLU import *
+from OpenGL.GL import *
+
+mesh_q1 = [];
+mesh_q2 = [];
+mesh_q3 = [];
+mesh_q4 = [];
+
+
+def loadStls():
+    global mesh_q1,mesh_q2,mesh_q3,mesh_q4
+    with load('./sim/q1.stl') as q1:
+        assert len(q1.meshes)
+        mesh_q1 = q1.meshes[0]
+    with load('./sim/q2.stl') as q2:
+        assert len(q2.meshes)
+        mesh_q2 = q2.meshes[0]
+    with load('./sim/q3.stl') as q3:
+        assert len(q3.meshes)
+        mesh_q3 = q3.meshes[0]
+    with load('./sim/q4.stl') as q4:
+        assert len(q4.meshes)
+        mesh_q4 = q4.meshes[0]
+
+def renderStl_q1():
+        glBegin(GL_LINES); 
+        for v in mesh_q1.vertices:
+          glVertex3fv(v);      
+        glEnd(); 
+def renderStl_q2():
+        glBegin(GL_LINES); 
+        for v in mesh_q2.vertices:
+          glVertex3fv(v);      
+        glEnd(); 
+def renderStl_q3():
+        glBegin(GL_LINES); 
+        for v in mesh_q3.vertices:
+          glVertex3fv(v);      
+        glEnd(); 
+def renderStl_q4():
+        glBegin(GL_LINES); 
+        for v in mesh_q4.vertices:
+          glVertex3fv(v);      
+        glEnd(); 
 
 def avg(matrix):
     vals = [];
@@ -60,7 +108,8 @@ class Bot:
     acc_avg = [0,0,0]
     def __init__(self):
         # LX16A.initialize("/dev/ttyTHS1")
-        LX16A.initialize("/dev/ttyUSB0")
+        LX16A.initialize("/dev/ttyUSB0");
+        loadStls();
         hip_pitch = 25;
         hip_offset = -1;
         leg_footing = 2;
@@ -225,3 +274,11 @@ class Bot:
         self.right_knee.moveIn(traj_6[3],time_to_execute)
         self.left_hip.moveIn(traj_6[4],time_to_execute)
         self.right_hip.moveIn(traj_6[5],time_to_execute)
+    def draw(self):
+        glutWireCube(100);
+        # glPushMatrix();
+        # renderStl_q1();
+        # renderStl_q2();
+        # renderStl_q3();
+        # renderStl_q4();
+        # glPopMatrix();
