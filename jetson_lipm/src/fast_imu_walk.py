@@ -1,4 +1,4 @@
-
+import math
 
 
 import imu 
@@ -144,8 +144,9 @@ while calibration:
 
 
 mark_4.finish_calibration();
+viability_x = 4;
 viability_y = 3;
-viability_x = 7;
+viability_z = 0.03;
 
 while not stop:
 	time_now = time.time()
@@ -221,14 +222,16 @@ while not stop:
 	R_viz.update()
 
 
-	# stable_x = abs(gyros[0]) <= 0.02;
-	# stable_y = abs(gyros[1]) <= 0.02;
+	
+	deg_x = d_deg[0]
+	deg_y = d_deg[1]
+	vel_x = gyros[0]
+	vel_y = gyros[0]
+	deg_magnitude = math.sqrt(deg_x**2, deg_y**2)
+	deg_dot_vel = (deg_x*vel_x + deg_y*vel_y) / deg_magnitude
+	ellipsoid_radius = deg_dot_vel**2 / viability_z**2 +  deg_x**2 / viability_x**2 + deg_y**2 / viability_y**2
 
-	stable_x = abs(d_deg[0]) <= viability_x and  abs(gyros[0]) <= 0.02;
-	stable_y = abs(d_deg[1]) <= viability_y and abs(gyros[1]) <= 0.02;
-
-
-	if stable_x and stable_y:
+	if deg_dot_vel <= 0 or ellipsoid_radius < 1:
 		peak_x = 0;
 		peak_y = 0;
 		fx_max = 0;
