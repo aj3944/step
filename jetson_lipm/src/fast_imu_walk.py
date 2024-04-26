@@ -42,7 +42,7 @@ N = len(traj_list)
 
 traj_index = 0
 
-motor_update_rate = 14.1 #Hz
+motor_update_rate = 12.9 #Hz
 
 time_old = time.time();
 time_delta = 1/motor_update_rate;
