@@ -5,7 +5,8 @@ import imu
 from step_bot import Bot
 import time
 from math import sin,cos,atan2,copysign
-
+import signal
+import sys
 
 IMU = imu.Accelerometer()
 
@@ -13,20 +14,28 @@ mark_4 = Bot()
 mark_4.home()
 time.sleep(3)
 
-sway = 0;
+sway = -3;
 
-sh =  14;
+sh =  19;
 sl = 0;
 sb = 0;
 
 traj_list = [
 	[ 0, 0, 0, 0, sway, sway],
-	[ -sh + sb, sh*2-sl, sb, 0, sway, sway],
+	[ -sh + sb, sh*1.8-sl, sb, 0, sway, sway],
 	[0,0,0,0,0,0],
 	[ 0, 0, 0, 0, -sway, -sway],
-	[ -sb, 0, sh - sb, -sh*2+sl, -sway, -sway],
+	[ -sb, 0, sh - sb, -sh*1.8+sl, -sway, -sway],
 	[0,0,0,0,0,0],
 ]
+
+
+def signal_handler(sig, frame):
+	print('Shutting down Mark IV')
+	mark_4.home()
+	sys.exit(0)
+signal.signal(signal.SIGINT, signal_handler)
+# signal.pause()
 
 
 N = len(traj_list)
@@ -37,7 +46,8 @@ motor_update_rate = 14.1 #Hz
 
 time_old = time.time();
 time_delta = 1/motor_update_rate;
-time_ms = int(time_delta*1000);
+# time_ms = int(time_delta*1000);
+time_ms = 10;
 
 max_vals = 1;
 
