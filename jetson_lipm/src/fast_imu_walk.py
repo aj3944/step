@@ -72,8 +72,9 @@ maxed_y = True;
 fx_max = 0;
 fy_max = 0;
 
+t_count = 0;
 
-while not stop:
+while not stop and t_count/N < 20:
 	time_now = time.time()
 	accs = list(IMU.readAccData())
 	gyros = [x for x in IMU.readGyroData()]
@@ -110,6 +111,7 @@ while not stop:
 			time_old = time.time()
 			traj_index += 1;
 			traj_index %= N;
+			t_count += 1;
 	else:
 		if maxed_x and maxed_y:
 			print("FALL START",end='\t');
