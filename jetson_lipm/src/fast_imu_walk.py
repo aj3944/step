@@ -16,16 +16,17 @@ time.sleep(3)
 
 sway = -3;
 
-sh =  19;
-sl = 0;
+sh =  17;
+sl = 2;
 sb = 0;
+sf = 1.8;
 
 traj_list = [
 	[ 0, 0, 0, 0, sway, sway],
-	[ -sh + sb, sh*1.8-sl, sb, 0, sway, sway],
-	[0,0,0,0,0,0],
+	[ -sh + sb, sh*sf-sl, sb, 0, sway, sway],
+	# [0,0,0,0,0,0],
 	[ 0, 0, 0, 0, -sway, -sway],
-	[ -sb, 0, sh - sb, -sh*1.8+sl, -sway, -sway],
+	[ -sb, 0, sh - sb, -sh*sf+sl, -sway, -sway],
 	[0,0,0,0,0,0],
 ]
 
@@ -42,7 +43,7 @@ N = len(traj_list)
 
 traj_index = 0
 
-motor_update_rate = 12.9 #Hz
+motor_update_rate = 12.1 #Hz
 
 time_old = time.time();
 time_delta = 1/motor_update_rate;
