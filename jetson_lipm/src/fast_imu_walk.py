@@ -14,21 +14,38 @@ mark_4 = Bot()
 mark_4.home()
 time.sleep(3)
 
-sway = -3;
+sway = -4;
 
-sh =  17;
+sh =  14;
 sl = 2;
-sb = 0;
+sb = 2;
 sf = 1.8;
 
-traj_list = [
+
+def traj_exotic(step_len):
+	# step_len *= -1;
+	return [
 	[ 0, 0, 0, 0, sway, sway],
-	[ -sh + sb, sh*sf-sl, sb, 0, sway, sway],
-	# [0,0,0,0,0,0],
-	[ 0, 0, 0, 0, -sway, -sway],
-	[ -sb, 0, sh - sb, -sh*sf+sl, -sway, -sway],
+	[ -sh , sh*sf, 0, 0, sway, sway],
+	[step_len,0,step_len,0,0,0],
 	[0,0,0,0,0,0],
-]
+	[ 0, 0, 0, 0, -sway, -sway],
+	[ 0, 0, sh, -sh*sf, -sway, -sway],
+	[-step_len,0,-step_len,0,0,0],
+	[0,0,0,0,0,0],
+	]
+
+# traj_list = [
+# 	[ 0, 0, 0, 0, sway, sway],
+# 	[ -sh + sb, sh*sf-sl, sb, 0, sway, sway],
+# 	[sb,0,sb,0,0,0],
+# 	[0,0,0,0,0,0],
+# 	[ 0, 0, 0, 0, -sway, -sway],
+# 	[ -sb, 0, sh - sb, -sh*sf+sl, -sway, -sway],
+# 	[sb,0,sb,0,0,0],
+# 	[0,0,0,0,0,0],
+# ]
+traj_list = traj_exotic(sb);
 
 
 def signal_handler(sig, frame):
@@ -43,7 +60,8 @@ N = len(traj_list)
 
 traj_index = 0
 
-motor_update_rate = 12.1 #Hz
+# motor_update_rate = 14.5 #Hz
+motor_update_rate = 14.5 #Hz
 
 time_old = time.time();
 time_delta = 1/motor_update_rate;
@@ -74,8 +92,9 @@ fx_max = 0;
 fy_max = 0;
 
 t_count = 0;
+step_max = 5;
 
-while not stop and t_count/N < 20:
+while not stop and t_count/N < 25:
 	time_now = time.time()
 	accs = list(IMU.readAccData())
 	gyros = [x for x in IMU.readGyroData()]
@@ -113,6 +132,11 @@ while not stop and t_count/N < 20:
 			traj_index += 1;
 			traj_index %= N;
 			t_count += 1;
+		if t_count%N == 0:
+			# sb *= 1.05;
+			# if sb > step_max:
+			# 	sb = step_max;
+			traj_list = traj_exotic(sb);
 	else:
 		if maxed_x and maxed_y:
 			print("FALL START",end='\t');
@@ -139,7 +163,7 @@ while not stop and t_count/N < 20:
 		# if not stable_y:
 				# marignal_toq = copysign(1,gyros[0])
 		step_len = 4;
-		step_height = 25;
+		step_height = 15;
 
 		# if gyros[1] > 0:
 		# 	print("stepping back")

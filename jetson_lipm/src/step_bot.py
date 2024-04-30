@@ -36,8 +36,8 @@ class Bot:
     def __init__(self):
         # LX16A.initialize("/dev/ttyTHS1")
         LX16A.initialize("/dev/ttyUSB0")
-        hip_pitch = 28;
-        hip_offset = -1;
+        hip_pitch = 24;
+        hip_offset = -1.5;
         leg_footing = 3;
         hip_footing = 4;
         self.left_knee = Motor(11,120 + leg_footing*2);
