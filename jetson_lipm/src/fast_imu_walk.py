@@ -18,7 +18,7 @@ sway = -4;
 
 sh =  14;
 sl = 2;
-sb = 2;
+sb = 6;
 sf = 1.8;
 
 
@@ -27,11 +27,11 @@ def traj_exotic(step_len):
 	return [
 	[ 0, 0, 0, 0, sway, sway],
 	[ -sh , sh*sf, 0, 0, sway, sway],
-	[step_len,0,step_len,0,0,0],
+	[-step_len,0,-step_len,0,0,0],
 	[0,0,0,0,0,0],
 	[ 0, 0, 0, 0, -sway, -sway],
 	[ 0, 0, sh, -sh*sf, -sway, -sway],
-	[-step_len,0,-step_len,0,0,0],
+	[step_len,0,step_len,0,0,0],
 	[0,0,0,0,0,0],
 	]
 
@@ -61,12 +61,12 @@ N = len(traj_list)
 traj_index = 0
 
 # motor_update_rate = 14.5 #Hz
-motor_update_rate = 14.5 #Hz
+motor_update_rate = 1.5 #Hz
 
 time_old = time.time();
 time_delta = 1/motor_update_rate;
-# time_ms = int(time_delta*1000);
-time_ms = 10;
+time_ms = int(time_delta*1000);
+# time_ms = 10;
 
 max_vals = 1;
 
