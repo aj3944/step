@@ -110,10 +110,10 @@ class Bot:
         # LX16A.initialize("/dev/ttyTHS1")
         LX16A.initialize("/dev/ttyUSB0");
         loadStls();
-        hip_pitch = 25;
+        hip_pitch = 15;
         hip_offset = -1;
-        leg_footing = 2;
-        hip_footing = 5;
+        leg_footing = 5;
+        hip_footing = 10;
         self.frame = 0;
         self.reset_clock = 25;
         # self.alpha

@@ -44,7 +44,7 @@ class Bot:
 
         # LX16A.initialize("/dev/ttyTHS1")
         LX16A.initialize("/dev/ttyUSB0")
-        hip_pitch = 35 
+        hip_pitch = 40 
         hip_offset = -1;
         leg_footing = 0;
         hip_footing = 3
@@ -176,7 +176,7 @@ if __name__ == "__main__":
         # [-0.0, 0.0, -x, -2*x, y, y],
         # [-0.0, 0.0, x, -2*x, y, y],
         [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
-        [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
+        # [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
         [0, 0, 0.0, 0.0, -y , -y],
         [x_prime, 0, -x, 2*x, -y , -y],
         [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
@@ -203,10 +203,24 @@ if __name__ == "__main__":
     # ]
 
 
+    new_traj = []
+
+    # new_traj.append([])
+    # new_traj.append([0,0,0,0,0,0])
+
+
+    f = -20;
+    new_traj.append([f,-2*f,0,0,0,0])
+    # new_traj.append([0,0,-f,2*f,0,0])
+    # new_traj.append([f,0,-f,0,0,0])
+    # new_traj.append([-f,0,f,0,0,0])
+    # new_traj.append([0,0,0,0,f,f])
+    # new_traj.append([0,0,0,0,-f,-f])
+
 
     for i in range(4):
-        for t4,i in zip(traj_walk_foot,range(len(traj_walk_foot))):
-                mark_4.injest_ik(t4,0.024)
+        for t4,i in zip(traj_final_pos,range(len(traj_final_pos))):
+                mark_4.injest_ik(t4,0.019)
 
 
 
