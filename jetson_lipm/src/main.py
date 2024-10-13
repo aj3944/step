@@ -5,8 +5,8 @@ import time
 from plotting import plotter
 
 
-def rand_etter():
-    return np.random.randint(0, 40,1)
+# def rand_etter():
+#     return np.random.randint(0, 40,1)
 
 
 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     # main.show()
     # app.exec()
 
-    pt = plotter(rand_etter)
+    #pt = plotter(rand_etter)
 
 
     mark_4 = Bot()

@@ -51,17 +51,17 @@ class Bot:
         self.left_knee = Motor(11,124 + leg_footing*2);
         self.left_thigh = Motor(12,82 + hip_pitch +        leg_footing);
         self.left_hip = Motor(13,132 + hip_footing + hip_offset);
-        self.right_hip = Motor(24,128 - hip_footing + hip_offset);
-        self.right_thigh = Motor(25,123 - hip_pitch -  leg_footing);
-        self.right_knee = Motor(26,73 - leg_footing*2);
+        # self.right_hip = Motor(24,128 - hip_footing + hip_offset);
+        # self.right_thigh = Motor(25,123 - hip_pitch -  leg_footing);
+        # self.right_knee = Motor(26,73 - leg_footing*2);
         
     def home(self):
         self.left_knee.move()
         self.left_thigh.move()
         self.left_hip.move()
-        self.right_knee.move()
-        self.right_thigh.move()
-        self.right_hip.move()
+        # self.right_knee.move()
+        # self.right_thigh.move()
+        # self.right_hip.move()
     def raise_foot(self,foot ,height):
         if foot == 0:
             self.left_knee.move(height);
@@ -205,22 +205,24 @@ if __name__ == "__main__":
 
     new_traj = []
 
+    # mark_4.left_knee.move(20)
+
     # new_traj.append([])
     # new_traj.append([0,0,0,0,0,0])
 
 
-    f = -20;
-    new_traj.append([f,-2*f,0,0,0,0])
-    # new_traj.append([0,0,-f,2*f,0,0])
-    # new_traj.append([f,0,-f,0,0,0])
-    # new_traj.append([-f,0,f,0,0,0])
-    # new_traj.append([0,0,0,0,f,f])
-    # new_traj.append([0,0,0,0,-f,-f])
+    # f = -20;
+    # new_traj.append([f,-2*f,0,0,0,0])
+    # # new_traj.append([0,0,-f,2*f,0,0])
+    # # new_traj.append([f,0,-f,0,0,0])
+    # # new_traj.append([-f,0,f,0,0,0])
+    # # new_traj.append([0,0,0,0,f,f])
+    # # new_traj.append([0,0,0,0,-f,-f])
 
 
-    for i in range(4):
-        for t4,i in zip(traj_final_pos,range(len(traj_final_pos))):
-                mark_4.injest_ik(t4,0.019)
+    # for i in range(4):
+    #     for t4,i in zip(traj_final_pos,range(len(traj_final_pos))):
+    #             mark_4.injest_ik(t4,0.019)
 
 
 

@@ -46,18 +46,21 @@ class Bot:
 
     def __init__(self):
         hip_pitch = 42 
-        leg_footing = 1
+        leg_footing = 0
         hip_footing = 3
+        ankle_offset = -10
+        hip_offset = -2
         # LX16A.initialize("/dev/ttyUSB1")
         res = LX16A.initialize("/dev/ttyUSB0")
         # res = LX16A.initialize("/dev/ttyTHS1")
         print(res)
         self.left_knee = Motor(11,124 + leg_footing*2);
         self.left_thigh = Motor(12,78 + hip_pitch +        leg_footing);
-        self.left_hip = Motor(13,134 + hip_footing);
-        self.right_hip = Motor(24,128 - hip_footing);
+        self.left_hip = Motor(13,134 + hip_footing + hip_offset);
+        self.right_hip = Motor(24,128 - hip_footing + hip_offset);
         self.right_thigh = Motor(25,128 - hip_pitch -  leg_footing);
-        self.right_knee = Motor(26,73 - leg_footing*2);
+        self.right_knee = Motor(26,75 - leg_footing*2);
+        self.left_ankle = Motor(33, 220 + ankle_offset)
         
         
     def home(self):
@@ -67,6 +70,7 @@ class Bot:
         self.right_knee.move()
         self.right_thigh.move()
         self.right_hip.move()
+        self.left_ankle.move()
     def raise_foot(self,foot ,height):
         if foot == 0:
             self.left_knee.move(height);
@@ -135,7 +139,7 @@ class Bot:
         self.right_thigh.moveIn(traj_4[2],time_to_execute)
 
 def step_traj(step_len_l = 0.1,step_len_r = 0.1):
-    x  = 17;
+    x  = 5;
 
     del_squat_A_t_l = -1*step_len_l;
     del_squat_A_t_r = -1*step_len_r;
