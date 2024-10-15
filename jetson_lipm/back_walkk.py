@@ -45,11 +45,12 @@ class Motor:
 class Bot:
 
     def __init__(self):
-        hip_pitch = 42 
-        leg_footing = 0
-        hip_footing = 3
-        ankle_offset = -10
-        hip_offset = -2
+        hip_pitch = 28 
+        leg_footing = 2
+        hip_footing = 0
+        right_ankle_offset = 0
+        left_ankle_offset = 0
+        hip_offset = 3
         # LX16A.initialize("/dev/ttyUSB1")
         res = LX16A.initialize("/dev/ttyUSB0")
         # res = LX16A.initialize("/dev/ttyTHS1")
@@ -57,10 +58,11 @@ class Bot:
         self.left_knee = Motor(11,124 + leg_footing*2);
         self.left_thigh = Motor(12,78 + hip_pitch +        leg_footing);
         self.left_hip = Motor(13,134 + hip_footing + hip_offset);
-        self.right_hip = Motor(24,128 - hip_footing + hip_offset);
+        self.right_hip = Motor(24,125 - hip_footing + hip_offset);
         self.right_thigh = Motor(25,128 - hip_pitch -  leg_footing);
         self.right_knee = Motor(26,75 - leg_footing*2);
-        self.left_ankle = Motor(33, 220 + ankle_offset)
+        self.left_ankle = Motor(33, 210 + left_ankle_offset)
+        self.right_ankle = Motor(34, 120 + right_ankle_offset)
         
         
     def home(self):
@@ -71,6 +73,7 @@ class Bot:
         self.right_thigh.move()
         self.right_hip.move()
         self.left_ankle.move()
+        self.right_ankle.move()
     def raise_foot(self,foot ,height):
         if foot == 0:
             self.left_knee.move(height);
@@ -92,13 +95,64 @@ class Bot:
             time.sleep(0.01)
             self.right_hip.read()
             time.sleep(0.01)
+            self.left_ankle.read()
+            time.sleep(0.01)
+            self.right_ankle.read()
+            time.sleep(0.01)
         except Exception as e:
             print(e)
             print("ecnoder fail")
+
+    def injest_ik_8dof(self, traj_8, time_to_execute = 1):
+        if len(traj_8) != 8: 
+            for i in range(8 - len(traj_8)):
+                traj_8.append(0)
+
+        print("injecting traj",traj_8)
+        init_left_knee_last_offset = self.left_knee.moved_last_offset
+        init_left_thigh_last_offset = self.left_thigh.moved_last_offset
+        init_left_hip_last_offset = self.left_hip.moved_last_offset
+        init_right_knee_last_offset = self.right_knee.moved_last_offset
+        init_right_thigh_last_offset = self.right_thigh.moved_last_offset
+        init_right_hip_last_offset = self.right_hip.moved_last_offset
+        init_right_ankle_last_offset = self.right_ankle.moved_last_offset
+        init_left_ankle_last_offset = self.left_ankle.moved_last_offset
+
+
+        delta_left_ankle = traj_8[0] - self.left_ankle.moved_last_offset
+        delta_left_knee =  traj_8[1] - self.left_knee.moved_last_offset;
+        delta_left_thigh =  traj_8[2] - self.left_thigh.moved_last_offset;
+        delta_left_hip =  traj_8[3] - self.left_hip.moved_last_offset;
+        delta_right_knee =  traj_8[6] - self.right_knee.moved_last_offset;
+        delta_right_thigh =  traj_8[5] - self.right_thigh.moved_last_offset;
+        delta_right_hip =  traj_8[4] - self.right_hip.moved_last_offset;
+        delta_right_ankle = traj_8[7] - self.right_ankle.moved_last_offset
+        
+
+
+        delta_left_knee *= 1/(1000*time_to_execute)
+        delta_left_thigh *= 1/(1000*time_to_execute)
+        delta_right_knee *= 1/(1000*time_to_execute)
+        delta_right_thigh *= 1/(1000*time_to_execute)
+        delta_left_hip *= 1/(1000*time_to_execute)
+        delta_right_hip *= 1/(1000*time_to_execute)
+        delta_left_ankle *= 1/(1000*time_to_execute)
+        delta_right_ankle *= 1/(1000*time_to_execute)
+
+        for i in range(int(1000*time_to_execute)):
+            self.left_knee.move(init_left_knee_last_offset + delta_left_knee*i)
+            self.left_thigh.move(init_left_thigh_last_offset + delta_left_thigh*i)
+            self.right_knee.move(init_right_knee_last_offset + delta_right_knee*i)
+            self.right_thigh.move(init_right_thigh_last_offset + delta_right_thigh*i)
+            self.left_hip.move(init_left_hip_last_offset + delta_left_hip*i)
+            self.right_hip.move(init_right_hip_last_offset + delta_right_hip*i)
+            self.right_ankle.move(init_right_ankle_last_offset + delta_right_ankle*i)
+            self.left_ankle.move(init_left_ankle_last_offset + delta_left_ankle*i)
+
     def injest_ik(self,traj_4,time_to_execute = 1):
-        if len(traj_4) == 4:
-            traj_4.append(0);
-            traj_4.append(0);
+        if len(traj_4) != 6:
+            for i in range(6 - len(traj_4)):
+                traj_4.append(0)
 
         print("injecting traj",traj_4)
         init_left_knee_last_offset = self.left_knee.moved_last_offset
@@ -115,6 +169,7 @@ class Bot:
         delta_right_knee =  traj_4[3] - self.right_knee.moved_last_offset;
         delta_right_thigh =  traj_4[2] - self.right_thigh.moved_last_offset;
         delta_right_hip =  traj_4[5] - self.right_hip.moved_last_offset;
+
 
 
         delta_left_knee *= 1/(1000*time_to_execute)
@@ -139,15 +194,15 @@ class Bot:
         self.right_thigh.moveIn(traj_4[2],time_to_execute)
 
 def step_traj(step_len_l = 0.1,step_len_r = 0.1):
-    x  = 5;
+    x  = 20;
 
     del_squat_A_t_l = -1*step_len_l;
     del_squat_A_t_r = -1*step_len_r;
     del_squat_A_f = 1;
     del_squat_B = 15;
 
-    del_shift_L = -6;
-    del_shift_R = 6;
+    del_shift_L = -0;
+    del_shift_R = 0;
 
     # del_shift_L = -0;
     # del_shift_R = 0;
@@ -159,6 +214,30 @@ def step_traj(step_len_l = 0.1,step_len_r = 0.1):
         [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
         [-0.0, 0.0, x - del_squat_A_t_r, -2*x -del_squat_A_f, del_shift_R , del_shift_R],
         [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0],
+    ]  
+    return traj_high_foot
+
+def step_2_traj(step_len_l = 0.1, step_len_r = 0.1): 
+    x  = 20;
+
+    del_squat_A_t_l = -1*step_len_l;
+    del_squat_A_t_r = -1*step_len_r;
+    del_squat_A_f = 1;
+    del_squat_B = 15;
+
+    del_shift_L = -0;
+    del_shift_R = 0;
+
+    # del_shift_L = -0;
+    # del_shift_R = 0;
+
+
+
+    traj_high_foot = [
+        [x/2.0, 2*x + del_squat_A_f, -x + del_squat_A_t_l, del_shift_L, del_shift_L, 0.0, 0.0, 0.0],
+        [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0],
+        [-0.0, 0.0, 0.0, del_shift_R, del_shift_R, x - del_squat_A_t_r, -2*x -del_squat_A_f, x/2.0],
+        [-0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0],
     ]  
     return traj_high_foot
 
@@ -280,10 +359,10 @@ if __name__ == "__main__":
     #     # [-0.0, 9.546566366780933, 4.288755587337035, -9.57103987946287, 0.0 , 0.0],
     # ]
 
-    traj_high_foot = step_traj(0,0);
-    traj_high_foot.extend(step_traj(0));
+    traj_high_foot = step_2_traj(0,0);
+    traj_high_foot.extend(step_2_traj(0));
     for i in range(40): 
-        traj_high_foot.extend(step_traj(-2,-2));
+        traj_high_foot.extend(step_2_traj(-2,-2));
     # for i in range(len(traj_high_foot)):
     #     traj_high_foot[i][1] = 90;
     #     traj_high_foot[i][3] = -90;
@@ -300,7 +379,8 @@ if __name__ == "__main__":
 
     # for x in range(100,300):
     for t4,i in zip(traj_high_foot,range(len(traj_high_foot))):
-        mark_4.injest_ik(t4,0.0200)
+        mark_4.injest_ik_8dof(t4,0.0200)
+        time.sleep(1)
                 # mark_4.injest_ik(t4,0.01)
         #     mark_4.injest_ik(t4,0.065)
         # else:

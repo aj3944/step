@@ -41,10 +41,10 @@ class Motor:
 
 LX16A.initialize("/dev/ttyUSB0")
 
-test_motor = Motor(33,220)
+test_motor = Motor(34,120)
 test_motor.servo.set_angle_limits(0, 240)
 #test_motor.move(-1)
-offsets = [-20, -10, 0, 10, 20, 0]
+offsets = [0,10,-10,0,20,-10,0]
 
 for x in offsets:
 	test_motor.move(x)
